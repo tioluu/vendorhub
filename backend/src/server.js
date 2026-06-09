@@ -3,7 +3,7 @@ import express from "express";
 import prisma from "../lib/prisma.js";
 import vendor from "./routes/vendors.js";
 import home from "./routes/home.js";
-import user from "./routes/users.js";
+import user from "./routes/usersRoute.js";
 import auth from "./routes/auth.js"
 
 const app = express();
