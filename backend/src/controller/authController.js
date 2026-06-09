@@ -1,37 +1,33 @@
-import express from "express";
 import prisma from "../../lib/prisma.js";
 import bcrypt from "bcrypt";
 
-const router = express.Router();
+const register = async (req, res) => {
+    const { fullName, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-router.post("/register", async (req, res) => {
-  const { fullName, email, password } = req.body;
+    const emailExists = await prisma.user.findUnique({
+        where: { email: email },
+    });
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    if (emailExists) {
+        return res.status(400)
+        .json({ error: "Email is already taken" });
+    }
 
-  const emailExists = await prisma.user.findUnique({
-    where: { email: email },
-  });
-
-  if (emailExists) {
-    return res.status(400)
-    .json({ error: "Email is already taken" });
-  }
-
-  const user = await prisma.user.create({
+    const user = await prisma.user.create({
     data: {
       fullName,
       email,
       passwordHash: hashedPassword,
     },
-  });
+    });
 
-  res.status(201).json({
-    message: "User created",
-  });
-});
+    res.status(201).json({
+        message: "User created",
+    });
+    };
 
-router.post("/login", async (req, res) => {
+const login = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -52,5 +48,7 @@ router.post("/login", async (req, res) => {
   return res.status(200).json({
     message: "User retrieve successful", user
   })
-});
-export default router;
+};
+
+export {register};
+export {login};
