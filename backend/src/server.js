@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 app.use("/vendor", vendor);
 app.use("/", home);
-app.use("/users", user);
+app.use("/", user);
 app.use("/auth", auth);
 
 
