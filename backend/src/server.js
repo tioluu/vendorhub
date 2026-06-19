@@ -3,18 +3,20 @@ import express from "express";
 import prisma from "../lib/prisma.js";
 import vendor from "./routes/vendorsRoute.js";
 import home from "./routes/homeRoute.js";
-import getUser from "./routes/usersRoute.js";
 import register from "./routes/authRoute.js"
 import login from "./routes/authRoute.js"
+import forgot_password from "./routes/userRoute.js";
+import getCurrentUser from "./routes/authRoute.js";
 
 const app = express();
 
 app.use(express.json());
 app.use("/api", vendor);
 app.use("/", home);
-app.use("/api", getUser);
-app.use("/api", register);
-app.use("/api", login);
+app.use("/api/auth", register);
+app.use("/api/auth", login);
+app.use("/api/auth", forgot_password);
+app.use("/api/auth", getCurrentUser);
 
 
 const port = 3000;
