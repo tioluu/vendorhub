@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 
 const register = async (req, res) => {
     const { fullName, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const emailExists = await prisma.user.findUnique({
         where: { email: email },
@@ -14,12 +13,10 @@ const register = async (req, res) => {
         .json({ error: "Email is already taken" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await prisma.user.create({
-    data: {
-      fullName,
-      email,
-      passwordHash: hashedPassword,
-    },
+    data: { fullName, email, passwordHash: hashedPassword },
     });
 
     res.status(201).json({
@@ -30,25 +27,60 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await prisma.user.findUnique({
-    where: { email: email },
+  const userLogin = await prisma.user.findUnique({ where: { email: email }
   });
 
-  if (!user) {
-    return res.status(400)
-    .json({ error: "Invalid email or password" });
+  if (!userLogin) {
+    return res.status(400).json({ error: "Invalid email or password" });
   }
-
-  const verifypass = await bcrypt.compare(password, user.passwordHash);
+  
+  const verifypass = await bcrypt.compare(password, userLogin.passwordHash);
   console.log(verifypass)
+
   if (!verifypass) {
     return res.status(401).json({ error: "Invalid email or password" });
   }
-  delete user.passwordHash
+  
+  delete userLogin.passwordHash
+  
+  const token = tokenGen(userLogin);
+
   return res.status(200).json({
-    message: "User retrieve successful", user
+    token,
+    message: "User retrieve successful", userLogin
+    
   })
+
+};
+
+const logout = async (req, res) => {
+  res.status(200).json({
+    message: "Logout successful"
+  })
+
+};
+
+const getCurrentUser = async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+          where: {
+            id: req.user.id
+            },
+          });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    delete user.passwordHash;
+
+    res.json(user);
+  } catch (error) {
+      res.status(500).json({ error: "Server error" });
+  }
 };
 
 export {register};
 export {login};
+export {getCurrentUser};
+export {logout};
