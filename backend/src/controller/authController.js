@@ -1,5 +1,7 @@
 import prisma from "../../lib/prisma.js";
 import bcrypt from "bcrypt";
+import { tokenGen } from "../utils/tokenGen.js";
+
 
 const register = async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -69,14 +71,15 @@ const getCurrentUser = async (req, res) => {
           });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ 
+        "message": "User not found" });
     }
 
     delete user.passwordHash;
 
     res.json(user);
   } catch (error) {
-      res.status(500).json({ error: "Server error" });
+      res.status(401).json({ error: "Could not authenticate user" });
   }
 };
 
