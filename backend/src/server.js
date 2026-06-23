@@ -1,22 +1,20 @@
 import "dotenv/config";
 import express from "express";
 import prisma from "../lib/prisma.js";
-import vendor from "./routes/vendorsRoute.js";
-import home from "./routes/homeRoute.js";
-import register from "./routes/authRoute.js"
-import login from "./routes/authRoute.js"
-import forgot_password from "./routes/userRoute.js";
-import getCurrentUser from "./routes/authRoute.js";
+import authRoutes from "./routes/authRoute.js";
+import homeRoutes from "./routes/homeRoute.js";
+import storeRoutes from "./routes/storeRoute.js";
+import productRoutes from "./routes/productRoute.js";
+import userRoutes from "./routes/userRoute.js";
 
 const app = express();
 
 app.use(express.json());
-app.use("/api", vendor);
-app.use("/", home);
-app.use("/api/auth", register);
-app.use("/api/auth", login);
-app.use("/api/auth", forgot_password);
-app.use("/api/auth", getCurrentUser);
+app.use("/", homeRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/stores", storeRoutes);
+app.use("/api/products", productRoutes);
 
 
 const port = 3000;
