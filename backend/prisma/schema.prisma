@@ -17,23 +17,16 @@ model User {
   fullName     String
   passwordHash String
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now())
-  vendor       Vendor?
+  updatedAt    DateTime      @updatedAt
+  store       Store?
 } 
 
-model Vendor { 
-  id           Int     @id @default(autoincrement())
-  products     Product[]
-  createdAt    DateTime      @default(now())
-  userId       Int  @unique
-  user         User     @relation(fields: [userId], references: [id])
-  store        Store?
-} 
 model Store {
   id          Int   @id @default(autoincrement())
   name        String @unique
-  vendorId    Int   @unique
-  vendor      Vendor @relation(fields: [vendorId], references: [id]) 
+  userId    Int   @unique
+  user      User @relation(fields: [userId], references: [id]) 
+  products Product[]
 }
 model Product { 
   id          Int     @id @default(autoincrement()) 
@@ -41,13 +34,13 @@ model Product {
   price       Int
   images      Image[]
   categories  Category[]
-  vendorId    Int
-  vendor      Vendor    @relation(fields: [vendorId], references: [id]) 
+  storeId    Int
+  store      Store    @relation(fields: [storeId], references: [id]) 
 } 
 model Category {
   id          Int   @id @default(autoincrement())
   name        String @unique
-  product     Product[]
+  products     Product[]
 
 }
 model Image {
