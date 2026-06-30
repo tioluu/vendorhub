@@ -12,7 +12,7 @@ datasource db {
 }
 
 model User { 
-  id           Int     @id @default(autoincrement()) 
+  id           Int     @id @default(autoincrement()) @unique
   email        String  @unique
   fullName     String
   passwordHash String
@@ -30,7 +30,7 @@ model Store {
 }
 model Product { 
   id          Int     @id @default(autoincrement()) 
-  name        String
+  name        String 
   price       Int
   images      Image[]
   categories  Category[]

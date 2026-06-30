@@ -5,7 +5,8 @@ const viewStore = async (req, res) => {
   });
 
   if (!store) {
-    return res.status(404).json({ "message": "Store not found" })
+    return res.status(404).json({ 
+      message: "Store not found" })
   };
   res.json(store)
 
@@ -20,12 +21,18 @@ const createStore = async (req, res) => {
       }
   });
 
-  res.status(201).json({message: "Store created successfully"})
+  res.status(201).json({
+    message: "Store created successfully",
+    store
+  });
 
-  } catch {
-    res.status(400).json({message: "Store already exist"})
-  };
-  
+  } catch (error) {
+  console.error(error);
+
+  res.status(500).json({
+    message: error.message
+  });
+}
 };
 
 const deleteStore = async (req, res) => {
@@ -37,11 +44,14 @@ const deleteStore = async (req, res) => {
         }
     }); 
 
-    res.status(201).json({message: "Store deleted successfully"})
+    res.status(201).json({message: "Store deleted successfully"});
 
     } catch (error) {
-    res.status(404).json({message: "Store not found"});
+  console.error(error);
 
+  res.status(500).json({
+    message: error.message
+  });
 } 
 };
 
