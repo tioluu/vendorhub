@@ -35,8 +35,11 @@ const createProduct = async (req, res) => {
 
   res.json(product)
 
-  } catch (error) { res.status(500).json({
-    message: "Could not create store"
+  } catch (error) {
+  console.error(error);
+
+  res.status(500).json({
+    message: error.message
   });
 }
 };
