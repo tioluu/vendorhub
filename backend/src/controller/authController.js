@@ -47,12 +47,11 @@ const login = async (req, res) => {
   
   const token = tokenGen(userLogin);
 
-  return res.status(200).json({
+  res.status(200).json({
     token,
     message: "User retrieve successful", userLogin
     
   })
-
 };
 
 const logout = async (req, res) => {
@@ -76,11 +75,15 @@ const getCurrentUser = async (req, res) => {
     }
 
     delete user.passwordHash;
-
     res.json(user);
+
   } catch (error) {
-      res.status(401).json({ error: "Could not authenticate user" });
-  }
+  console.error(error);
+
+  res.status(500).json({
+    message: error.message
+  });
+}
 };
 
 export {register};
