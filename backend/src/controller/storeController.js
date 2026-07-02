@@ -27,10 +27,8 @@ const createStore = async (req, res) => {
   });
 
   } catch (error) {
-  console.error(error);
-
-  res.status(500).json({
-    message: error.message
+    res.status(400).json({
+    message: "Store already exist"
   });
 }
 };
