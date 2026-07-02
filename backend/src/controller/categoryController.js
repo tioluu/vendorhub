@@ -13,6 +13,26 @@ const createCategory = async (req, res) => {
     });
 };
 
+const deleteCategory = async (req, res) => {
+    try{
+        const category = await prisma.category.delete ({
+            where: {
+                id: Number(req.params.id)
+            }
+        });
+
+        return res.status(200).json ({
+            message: "Category deleted",
+            category
+        });
+
+    } catch (error) {
+        res.status(404).json ({
+            message: "Category not found"
+        });
+    }
+};
+
 const viewCategory = async (req, res) => {
     const category = await prisma.category.findMany();
     res.status(200).json(category)
@@ -20,3 +40,4 @@ const viewCategory = async (req, res) => {
 
 export {createCategory};
 export {viewCategory};
+export {deleteCategory};
