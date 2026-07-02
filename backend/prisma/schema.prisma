@@ -27,6 +27,7 @@ model Store {
   userId    Int   @unique
   user      User @relation(fields: [userId], references: [id]) 
   products Product[]
+  published Boolean
 }
 model Product { 
   id          Int     @id @default(autoincrement()) 
@@ -36,6 +37,7 @@ model Product {
   categories  Category[]
   storeId    Int
   store      Store    @relation(fields: [storeId], references: [id]) 
+  published Boolean
 } 
 model Category {
   id          Int   @id @default(autoincrement())
