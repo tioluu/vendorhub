@@ -36,6 +36,7 @@ const deleteCategory = async (req, res) => {
 const viewCategory = async (req, res) => {
     const category = await prisma.category.findMany();
     res.status(200).json(category)
+    
 };
 
 export {createCategory};

@@ -25,11 +25,15 @@ const createProduct = async (req, res) => {
       res.status(404).json({ message: "Store not found"})
     }
 
+    const { name, price, categories } = req.body;
     const product = await prisma.product.create({
       data: {
-        name: req.body.name,
-        price: req.body.price,
-        storeId: store.id
+        name,
+        price,
+        storeId: store.id,
+        categories: {
+          connect: categories.map(id => ({ id}))
+        }
       }
     });
 
