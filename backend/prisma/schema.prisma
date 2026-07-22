@@ -31,11 +31,11 @@ model Store {
 }
 model Product { 
   id          Int     @id @default(autoincrement()) 
-  name        String 
+  name        String  @unique
   price       Int
   images      Image[]
   categories  Category[]
-  storeId    Int
+  storeId    Int      @unique
   store      Store    @relation(fields: [storeId], references: [id]) 
   published Boolean @default(false)
 } 
