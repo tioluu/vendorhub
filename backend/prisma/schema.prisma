@@ -24,11 +24,18 @@ model User {
 model Store {
   id          Int   @id @default(autoincrement())
   name        String @unique
-  userId    Int   @unique
-  user      User @relation(fields: [userId], references: [id]) 
-  products Product[]
   published Boolean @default(false)
-}
+  bannerUrl   String?
+  fontFamily      String?  @default("Inter")
+  backgroundColor String?  @default("#FFFFFF")
+  foregroundColor String?  @default("#000000")
+
+
+  userId    Int   @unique
+  user      User @relation(fields: [userId], references: [id])
+
+  products Product[]
+  }
 model Product { 
   id          Int     @id @default(autoincrement()) 
   name        String  @unique
