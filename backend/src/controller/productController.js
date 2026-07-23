@@ -111,7 +111,6 @@ const editProduct = async (req, res) => {
       }
     });
 
-    delete product.storeId, product.published;
     res.json(updatedProduct)
 
   } catch (error) {
