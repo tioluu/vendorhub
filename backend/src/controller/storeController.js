@@ -53,6 +53,38 @@ const deleteStore = async (req, res) => {
 } 
 };
 
+const customizeStore = async (req, res) => {
+  try {
+    const store = await prisma.store.findUnique({
+      where: {
+        userId: req.user.id
+      }
+    });
+
+    if (!store) {
+      return res.status(401).json({
+        message: "Store not found"
+      })
+    };
+
+    const { fontFamily, backgroundColor, ForegroundColor} = req.body
+    const updatedStore = await prisma.store.update ({
+      where: {
+        storeId: req.user.storeId
+      },
+      data: {
+        fontFamily, 
+        backgroundColor, 
+        foregroundColor
+      }
+    })
+  } catch (error) {
+
+  }
+}
+
+
 export {viewStore};
 export {createStore};
 export {deleteStore};
+export {customizeStore};
