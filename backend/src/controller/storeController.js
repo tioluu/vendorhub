@@ -6,11 +6,38 @@ const viewStore = async (req, res) => {
 
   if (!store) {
     return res.status(404).json({ 
-      message: "Store not found" })
+      message: "No Store found" })
   };
   res.json(store)
 
 }
+
+const viewStoreById = async (req, res) => {
+  const {id} = req.params;
+  try{
+    const store = await prisma.store.findUnique({
+    where: {
+      id: Number (id)
+    }
+  });
+ 
+    if (!store) {
+      return res.status(404).json ({
+        message: "Store Not Found"
+      })
+    };
+    
+    res.json(store)
+    
+  } catch (error) {
+    console.error(error);
+
+  res.status(500).json({
+    message: "SOmething went wrong"
+  });
+  }
+  
+};
 
 const createStore = async (req, res) => {
   try{
@@ -92,6 +119,7 @@ const customizeStore = async (req, res) => {
 
 
 export {viewStore};
+export {viewStoreById};
 export {createStore};
 export {deleteStore};
 export {customizeStore};
