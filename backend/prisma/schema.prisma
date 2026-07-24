@@ -38,13 +38,17 @@ model Store {
   }
 model Product { 
   id          Int     @id @default(autoincrement()) 
-  name        String  @unique
+  name        String  
   price       Int
   images      Image[]
   categories  Category[]
-  storeId    Int      @unique
+
+  storeId    Int      
   store      Store    @relation(fields: [storeId], references: [id]) 
+
   published Boolean @default(false)
+
+  @@unique([storeId, name])
 } 
 model Category {
   id          Int   @id @default(autoincrement())
