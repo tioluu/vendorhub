@@ -67,10 +67,10 @@ const customizeStore = async (req, res) => {
       })
     };
 
-    const { fontFamily, backgroundColor, ForegroundColor} = req.body
+    const { fontFamily, backgroundColor, foregroundColor} = req.body
     const updatedStore = await prisma.store.update ({
       where: {
-        storeId: req.user.storeId
+        userId: req.user.id
       },
       data: {
         fontFamily, 
@@ -78,10 +78,17 @@ const customizeStore = async (req, res) => {
         foregroundColor
       }
     })
-  } catch (error) {
 
+    res.json(updatedStore)
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+    message: "Something went wrong"
+  });
   }
-}
+};
 
 
 export {viewStore};
