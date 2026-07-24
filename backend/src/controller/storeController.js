@@ -28,12 +28,12 @@ const viewStoreById = async (req, res) => {
     };
     
     res.json(store)
-    
+
   } catch (error) {
     console.error(error);
 
   res.status(500).json({
-    message: "SOmething went wrong"
+    message: "Something went wrong"
   });
   }
   
@@ -75,7 +75,7 @@ const deleteStore = async (req, res) => {
   console.error(error);
 
   res.status(500).json({
-    message: error.message
+    message: "Store already exist"
   });
 } 
 };

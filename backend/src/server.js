@@ -11,7 +11,7 @@ import categoryRoutes from "./routes/categoryRoute.js";
 const app = express();
 
 app.use(express.json());
-app.use("/", homeRoutes);
+app.use("/api", homeRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/stores", storeRoutes);
