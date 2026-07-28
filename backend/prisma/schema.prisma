@@ -12,7 +12,7 @@ datasource db {
 }
 
 model User { 
-  id           Int     @id @default(autoincrement()) @unique
+  id           Int     @id @default(autoincrement())
   email        String  @unique
   fullName     String
   passwordHash String
@@ -20,7 +20,7 @@ model User {
   updatedAt    DateTime      @updatedAt
   store        Store?
   cart         Cart?
-  order        Order[]
+  orders        Order[]
 } 
 
 model Store {
@@ -81,7 +81,7 @@ model OrderItem {
   name      String
 
   orderId   Int
-  order     Order @relation(fields: [orderId], references: [id])
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId Int
   product   Product @relation(fields: [productId], references: [id])
   storeId    Int      
