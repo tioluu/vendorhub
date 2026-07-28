@@ -47,6 +47,8 @@ model Product {
   orderItems  OrderItem[]
   images      Image[]
   categories  Category[]
+  stock       Int @default(0)
+  trackInventory  Boolean @default(true)
 
   storeId    Int      
   store      Store    @relation(fields: [storeId], references: [id]) 
