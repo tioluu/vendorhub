@@ -1,4 +1,3 @@
-import { response } from "express";
 import prisma from "../../lib/prisma.js";
 
 const viewProduct = async (req, res) => {
