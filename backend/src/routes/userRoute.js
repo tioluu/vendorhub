@@ -1,5 +1,5 @@
 import express from "express";
-import { forgot_password } from "../controller/userController.js";
+import { forgot_password } from "../controllers/userController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
