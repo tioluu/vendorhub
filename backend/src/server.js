@@ -7,6 +7,7 @@ import storeRoutes from "./routes/storeRoute.js";
 import productRoutes from "./routes/productRoute.js";
 import userRoutes from "./routes/userRoute.js";
 import categoryRoutes from "./routes/categoryRoute.js";
+import cartRoutes from "./routes/cartRoute.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/stores", storeRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/cart", cartRoutes);
 
 
 const port = 3000;
