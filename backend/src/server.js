@@ -1,13 +1,13 @@
 import "dotenv/config";
 import express from "express";
 import prisma from "../lib/prisma.js";
-import authRoutes from "./routes/authRoute.js";
-import homeRoutes from "./routes/homeRoute.js";
-import storeRoutes from "./routes/storeRoute.js";
-import productRoutes from "./routes/productRoute.js";
-import userRoutes from "./routes/userRoute.js";
-import categoryRoutes from "./routes/categoryRoute.js";
-import cartRoutes from "./routes/cartRoute.js";
+import authRoutes from "./vendorRoutes/authRoute.js";
+import homeRoutes from "./vendorRoutes/homeRoute.js";
+import storeRoutes from "./vendorRoutes/storeRoute.js";
+import productRoutes from "./vendorRoutes/productRoute.js";
+import userRoutes from "./vendorRoutes/userRoute.js";
+import categoryRoutes from "./vendorRoutes/categoryRoute.js";
+import cartRoutes from "./customerRoute/cartRoute.js";
 
 const app = express();
 
