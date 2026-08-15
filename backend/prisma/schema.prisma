@@ -92,6 +92,7 @@ model OrderItem {
 model Cart {
   id        Int @id @default(autoincrement())
   items     CartItem[]
+  tokenHash String  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
