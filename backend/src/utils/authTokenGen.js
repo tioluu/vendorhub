@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken"
 
-const tokenGen = (user) => {
+const authTokenGen = (user) => {
     return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET,
     { expiresIn: "24h" }
   );
 };
 
-export {tokenGen};
+export {authTokenGen};
