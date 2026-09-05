@@ -1,6 +1,6 @@
 import prisma from "../../lib/prisma.js";
 import bcrypt from "bcrypt";
-import { tokenGen } from "../utils/tokenGen.js";
+import { authTokenGen } from "../utils/authTokenGen.js";
 
 
 const register = async (req, res) => {
@@ -45,7 +45,7 @@ const login = async (req, res) => {
   
   delete userLogin.passwordHash
   
-  const token = tokenGen(userLogin);
+  const token = authTokenGen(userLogin);
 
   res.status(200).json({
     token,
