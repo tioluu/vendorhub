@@ -1,12 +1,12 @@
 import prisma from "../../lib/prisma.js";
 import bcrypt from "bcrypt";
-import { tokenGen } from "../utils/tokenGen.js";
+import { authTokenGen } from "../utils/authTokenGen.js";
 
 
 const register = async (req, res) => {
     const { fullName, email, password } = req.body;
 
-    const emailExists = await prisma.user.findUnique({
+    const emailExists = await prisma.vendor.findUnique({
         where: { email: email },
     });
 
@@ -17,39 +17,40 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    const vendor = await prisma.vendor.create({
     data: { fullName, email, passwordHash: hashedPassword },
     });
 
     res.status(201).json({
-        message: "User created",
+        message: "Vendor created",
+
     });
 };
 
 const login = async (req, res) => {
   const { email, password } = req.body;
 
-  const userLogin = await prisma.user.findUnique({ where: { email: email }
+  const vendorLogin = await prisma.vendor.findUnique({ where: { email: email }
   });
 
-  if (!userLogin) {
+  if (!vendorLogin) {
     return res.status(400).json({ error: "Invalid email or password" });
   }
   
-  const verifypass = await bcrypt.compare(password, userLogin.passwordHash);
+  const verifypass = await bcrypt.compare(password, vendorLogin.passwordHash);
   console.log(verifypass)
 
   if (!verifypass) {
     return res.status(401).json({ error: "Invalid email or password" });
   }
   
-  delete userLogin.passwordHash
+  delete vendorLogin.passwordHash
   
-  const token = tokenGen(userLogin);
+  const token = authTokenGen(vendorLogin);
 
   res.status(200).json({
     token,
-    message: "User retrieve successful", userLogin
+    message: "Vendor retrieve successful", vendorLogin
     
   })
 };
@@ -63,19 +64,19 @@ const logout = async (req, res) => {
 
 const getCurrentUser = async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({
+        const vendor = await prisma.vendor.findUnique({
           where: {
-            id: req.user.id
+            id: req.vendor.id
             },
           });
 
-    if (!user) {
+    if (!vendor) {
       return res.status(404).json({ 
-        "message": "User not found" });
+        "message": "Vendor not found" });
     }
 
-    delete user.passwordHash;
-    res.json(user);
+    delete vendor.passwordHash;
+    res.json(vendor);
 
   } catch (error) {
   console.error(error);
@@ -86,7 +87,18 @@ const getCurrentUser = async (req, res) => {
 }
 };
 
+const deleteAccount = async (req, res) => {
+  try {
+    await prisma.vendor.delete({ where: { id: req.vendor.id } });
+    res.status(200).json({ message: "Account deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 export {register};
 export {login};
 export {getCurrentUser};
+export {deleteAccount};
 export {logout};
