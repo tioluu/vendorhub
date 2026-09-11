@@ -12,16 +12,19 @@ export class HealthChecks {
   private readonly results = signal<ReadonlyMap<string, CheckResult>>(new Map());
   readonly checking = signal(false);
   readonly lastChecked = signal<Date | null>(null);
-  readonly total = PROBED.length;
 
   readonly overall = computed<Overall>(() => {
     const results = this.results();
     if (results.size === 0) return 'checking';
     if (results.get(HEALTH_ID)?.state !== 'up') return 'offline';
-    return [...results.values()].some((r) => r.state !== 'up') ? 'degraded' : 'operational';
+    const broken = [...results.values()].some((r) => r.state === 'failing' || r.state === 'unreachable');
+    return broken ? 'degraded' : 'operational';
   });
 
-  readonly passing = computed(() => [...this.results().values()].filter((r) => r.state === 'up').length);
+  /** Checks that actually ran; a check is skipped when there's no record to look up. */
+  private readonly ran = computed(() => [...this.results().values()].filter((r) => r.state !== 'skipped'));
+  readonly total = computed(() => this.ran().length);
+  readonly passing = computed(() => this.ran().filter((r) => r.state === 'up').length);
 
   constructor(private readonly env: Environment) {}
 
@@ -33,12 +36,7 @@ export class HealthChecks {
     if (this.checking()) return;
     this.checking.set(true);
 
-    const outcomes = await Promise.all(
-      PROBED.map(async (ep) => {
-        const reply = await send(this.env.base + ep.probe!.path);
-        return toResult(reply, ep.probe!.expect.includes(reply.status));
-      }),
-    );
+    const outcomes = await Promise.all(PROBED.map((ep) => this.probe(ep)));
 
     // If the health check fails the server itself is down, so other failures are just noise.
     const healthUp = outcomes[PROBED.findIndex((ep) => ep.id === HEALTH_ID)].state === 'up';
@@ -49,5 +47,24 @@ export class HealthChecks {
     );
     this.lastChecked.set(new Date());
     this.checking.set(false);
+  }
+
+  private async probe(ep: Endpoint): Promise<CheckResult> {
+    const probe = ep.probe!;
+    let path = probe.path;
+
+    if (probe.idFrom) {
+      const list = await send(this.env.base + probe.idFrom);
+      const first: unknown = Array.isArray(list.body) ? list.body[0] : undefined;
+      const id = (first as { id?: unknown } | undefined)?.id;
+      if (typeof id !== 'number') {
+        const listed = list.status >= 200 && list.status < 300;
+        return { state: 'skipped', message: listed ? 'Nothing to look up yet' : 'Could not get an id to look up' };
+      }
+      path = path.replace(':id', String(id));
+    }
+
+    const reply = await send(this.env.base + path);
+    return toResult(reply, probe.expect.includes(reply.status));
   }
 }
