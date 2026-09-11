@@ -1,4 +1,5 @@
-export type CheckState = 'idle' | 'checking' | 'up' | 'failing' | 'unreachable' | 'skipped';
+/** `blocked` means the endpoint writes data and the environment is read-only. */
+export type CheckState = 'idle' | 'checking' | 'up' | 'failing' | 'unreachable' | 'skipped' | 'blocked';
 
 export interface CheckResult {
   state: CheckState;
