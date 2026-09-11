@@ -44,7 +44,7 @@ const createStore = async (req, res) => {
     const store = await prisma.store.create({
       data: {
         name: req.body.name,
-        userId: req.user.id
+        vendorId: req.vendor.id
       }
   });
 
@@ -65,11 +65,11 @@ const deleteStore = async (req, res) => {
        const store = await prisma.store.delete({
         where: {
             name: req.body.name,
-            userId: req.user.id
+            vendorId: req.vendor.id
         }
     }); 
 
-    res.status(201).json({message: "Store deleted successfully"});
+    res.status(200).json({message: "Store deleted successfully"});
 
     } catch (error) {
   console.error(error);
@@ -84,7 +84,7 @@ const customizeStore = async (req, res) => {
   try {
     const store = await prisma.store.findUnique({
       where: {
-        userId: req.user.id
+        vendorId: req.vendor.id
       }
     });
 
@@ -97,7 +97,7 @@ const customizeStore = async (req, res) => {
     const { fontFamily, backgroundColor, foregroundColor} = req.body
     const updatedStore = await prisma.store.update ({
       where: {
-        userId: req.user.id
+        vendorId: req.vendor.id
       },
       data: {
         fontFamily, 
