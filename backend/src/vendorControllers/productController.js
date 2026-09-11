@@ -17,7 +17,7 @@ const createProduct = async (req, res) => {
   try{
     const store = await prisma.store.findUnique({
       where: {
-        userId: req.user.id
+        vendorId: req.vendor.id
       }
     });
 
@@ -77,7 +77,7 @@ const editProduct = async (req, res) => {
   try {
     const store = await prisma.store.findUnique({
       where: {
-        userId: req.user.id
+        vendorId: req.vendor.id
       }
     });
 
@@ -126,7 +126,7 @@ const deleteProduct = async (req, res) => {
   try{
     const store = await prisma.store.findUnique({
       where: {
-      userId: req.user.id
+      vendorId: req.vendor.id
       }
     });
 
