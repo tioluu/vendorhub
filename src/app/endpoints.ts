@@ -5,13 +5,14 @@ export interface Probe {
   path: string;
   /** Status codes that mean the endpoint is working. */
   expect: number[];
-  note?: string;
+  /** A list endpoint whose first item's id fills the `:id` in `path`. */
+  idFrom?: string;
 }
 
 export interface Endpoint {
   id: string;
   method: Method;
-  /** Route path; `:id` is filled in by the full test. */
+  /** Route path; `:id` is filled in by the probe or the full test. */
   path: string;
   description: string;
   auth: boolean;
@@ -103,11 +104,7 @@ export const ENDPOINT_GROUPS: EndpointGroup[] = [
         path: '/api/stores/view-store/:id',
         description: 'Get one store by id',
         auth: false,
-        probe: {
-          path: '/api/stores/view-store/1',
-          expect: [200, 404],
-          note: 'Checked with id 1. A 404 just means no store has that id.',
-        },
+        probe: { path: '/api/stores/view-store/:id', idFrom: '/api/stores/view-stores', expect: [200] },
       },
       {
         id: 'create-store',
