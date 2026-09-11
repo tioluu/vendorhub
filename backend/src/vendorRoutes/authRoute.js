@@ -1,5 +1,5 @@
 import express from "express";
-import { getCurrentUser, register } from "../vendorControllers/authController.js";
+import { deleteAccount, getCurrentUser, register } from "../vendorControllers/authController.js";
 import { login } from "../vendorControllers/authController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
@@ -10,5 +10,7 @@ router.post ("/register", register);
 router.post ("/login", login);
 
 router.get ("/me", authenticateToken, getCurrentUser);
+
+router.delete("/me", authenticateToken, deleteAccount);
 
 export default router;
