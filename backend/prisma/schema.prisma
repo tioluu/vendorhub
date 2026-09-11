@@ -31,7 +31,7 @@ model Store {
   backgroundColor String?  @default("#FFFFFF")
   foregroundColor String?  @default("#000000")
   orders    Order[]
-  cart      Cart[]
+  carts      Cart[]
   categories Category[]
 
   userId    Int   @unique
