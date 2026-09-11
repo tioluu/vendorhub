@@ -3,7 +3,7 @@ import prisma from "../../lib/prisma.js";
 const forgot_password = async (req, res) => {
   const {email} = req.body;
 
-  const verifyEmail = await prisma.user.findUnique({
+  const verifyEmail = await prisma.vendor.findUnique({
     where: {email: email},
   });
 
