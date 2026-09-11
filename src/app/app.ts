@@ -22,6 +22,7 @@ const STATE_LABELS: Record<CheckState, string> = {
   failing: 'Failed',
   unreachable: 'Unreachable',
   skipped: 'Skipped',
+  blocked: 'Not allowed',
 };
 
 @Component({
@@ -55,7 +56,8 @@ export class App {
 
   protected resultFor(env: Environment, ep: Endpoint): CheckResult {
     if (ep.probe) return this.checks[env.id].result(ep);
-    return this.tests[env.id]?.result(ep) ?? { state: 'idle' };
+    const test = this.tests[env.id];
+    return test ? test.result(ep) : { state: 'blocked' };
   }
 
   protected detail(env: Environment, result: CheckResult): string {
@@ -66,7 +68,9 @@ export class App {
       case 'unreachable':
         return 'No response';
       case 'idle':
-        return env.readOnly ? 'Only tested on dev' : 'Run the full test';
+        return 'Run the full test';
+      case 'blocked':
+        return `${env.name} is read-only`;
       default:
         return '';
     }
