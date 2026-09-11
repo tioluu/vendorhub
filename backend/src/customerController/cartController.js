@@ -1,6 +1,7 @@
 import prisma from "../../lib/prisma.js";
 
 const viewCart = async (req, res) => {
+    if (!req.cart)
     try{
         const cart = await prisma.cart.findUnique({
         where: {
@@ -33,6 +34,6 @@ const viewCart = async (req, res) => {
 };
 
 const addToCart = async (req, res) => {
-    
+        
 }
 export {viewCart};
