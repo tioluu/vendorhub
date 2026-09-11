@@ -33,7 +33,7 @@
         @if (health.overall() === 'offline') {
           Nothing is answering on {{ env.target }}.
         } @else if (health.lastChecked(); as checked) {
-          {{ health.passing() }} of {{ health.total }} read-only checks passing ·
+          {{ health.passing() }} of {{ health.total() }} read-only checks passing ·
           {{ checked | date: 'HH:mm:ss' }}
         } @else {
           Running the first checks.
@@ -101,28 +101,17 @@
                   <span class="tag">Login required</span>
                 }
               </p>
-              @if (ep.probe?.note; as note) {
-                <p class="note">{{ note }}</p>
-              }
               @if (result.message; as message) {
-                <p class="note error">{{ message }}</p>
+                <p class="note" [class.error]="result.state === 'failing'">{{ message }}</p>
               }
             </div>
-            <div class="state" [attr.data-state]="result.state">
-              <span class="dot"></span>
-              <div>
-                <span class="label">{{ stateLabels[result.state] }}</span>
-                <span class="meta">{{ detail(env, result) }}</span>
-              </div>
+            <div class="state">
+              <span class="badge" [attr.data-state]="result.state">{{ stateLabels[result.state] }}</span>
+              <span class="meta">{{ detail(env, result) }}</span>
             </div>
           </li>
         }
       </ul>
     </section>
   }
-
-  <footer>
-    Prod only gets read-only checks. The full test runs on dev with a throwaway vendor and deletes
-    what it creates. Cart is left out for now.
-  </footer>
 </main>
