@@ -64,19 +64,19 @@ const logout = async (req, res) => {
 
 const getCurrentUser = async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({
+        const vendor = await prisma.vendor.findUnique({
           where: {
-            id: req.user.id
+            id: req.vendor.id
             },
           });
 
-    if (!user) {
+    if (!vendor) {
       return res.status(404).json({ 
-        "message": "User not found" });
+        "message": "Vendor not found" });
     }
 
-    delete user.passwordHash;
-    res.json(user);
+    delete vendor.passwordHash;
+    res.json(vendor);
 
   } catch (error) {
   console.error(error);
@@ -89,7 +89,7 @@ const getCurrentUser = async (req, res) => {
 
 const deleteAccount = async (req, res) => {
   try {
-    await prisma.vendor.delete({ where: { id: req.user.id } });
+    await prisma.vendor.delete({ where: { id: req.vendor.id } });
     res.status(200).json({ message: "Account deleted" });
   } catch (error) {
     console.error(error);
