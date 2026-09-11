@@ -1,0 +1,12 @@
+{
+  "/dev/api": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "pathRewrite": { "^/dev": "" }
+  },
+  "/prod/api": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "pathRewrite": { "^/prod": "" }
+  }
+}
