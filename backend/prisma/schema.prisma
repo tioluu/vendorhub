@@ -11,14 +11,12 @@ datasource db {
   provider = "postgresql"
 }
 
-model User { 
+model Vendor { 
   id           Int     @id @default(autoincrement())
   email        String  @unique
   fullName     String
   passwordHash String
   store        Store?
-  cart         Cart?
-  orders       Order[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -33,10 +31,11 @@ model Store {
   backgroundColor String?  @default("#FFFFFF")
   foregroundColor String?  @default("#000000")
   orders    Order[]
-
+  cart      Cart[]
+  categories Category[]
 
   userId    Int   @unique
-  user      User @relation(fields: [userId], references: [id])
+  vendor    Vendor @relation(fields: [userId], references: [id])
 
   products Product[]
   }
@@ -50,6 +49,7 @@ model Product {
   categories  Category[]
   stock       Int @default(0)
   trackInventory  Boolean @default(true)
+  archived  Boolean  @default(false)
 
   storeId    Int      
   store      Store    @relation(fields: [storeId], references: [id]) 
@@ -68,12 +68,11 @@ model Order {
   id        Int @id @default(autoincrement())
   status    OrderStatus @default(PENDING)
   total     Int
+  email     String
   items     OrderItem[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId    Int 
-  user      User @relation(fields: [userId], references: [id])
   storeId    Int      
   store      Store    @relation(fields: [storeId], references: [id]) 
 }
@@ -92,13 +91,14 @@ model OrderItem {
 model Cart {
   id        Int @id @default(autoincrement())
   items     CartItem[]
-  tokenHash String  @unique
+  tokenHash String  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId    Int   @unique
-  user      User  @relation(fields: [userId], references: [id])
+  storeId    Int   @unique
+  store      Store  @relation(fields: [storeId], references: [id])
 
+  @@unique([tokenHash, storeId])
 }
 model CartItem {
   id        Int @id @default(autoincrement())
@@ -114,13 +114,18 @@ model CartItem {
 }
 model Category {
   id          Int   @id @default(autoincrement())
-  name        String @unique
+  name        String
   products     Product[]
+
+  storeId     Int
+  store       Store   @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, name])
 
 }
 model Image {
   id          Int   @id @default(autoincrement())
   url        String
   productId   Int
-  product     Product @relation(fields: [productId], references: [id]) 
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
