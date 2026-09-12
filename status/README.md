@@ -1,6 +1,6 @@
 # VendorHub API status
 
-A small Angular dashboard that checks the VendorHub backend in `~/firstbackendproject/backend`.
+A small Angular dashboard that checks the VendorHub backend in `../backend`.
 
 | Environment | Backend          | What runs                                           |
 | ----------- | ---------------- | --------------------------------------------------- |
@@ -21,7 +21,10 @@ The page opens on whichever view you used last.
 
 ## Run it
 
+From the repo root:
+
 ```bash
+cd status
 npm install
 npm start
 ```
