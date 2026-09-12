@@ -12,7 +12,8 @@ export interface Environment {
   resetCommand?: string;
 }
 
-const BACKEND = '~/firstbackendproject/backend';
+/** The commands below are run from the repo root. */
+const BACKEND = 'backend';
 
 export const ENVIRONMENTS: Environment[] = [
   {
