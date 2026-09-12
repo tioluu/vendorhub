@@ -1,0 +1,125 @@
+/* Page layout only. Rows, pills, buttons and dots are shared with the summary, so they live in styles.css. */
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1,
+.card-title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+h1 {
+  margin: 0 0 24px;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.card-sub,
+.env code {
+  color: var(--muted);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+/* Summary / Details: a segmented control, so it doesn't look like the environment tabs. */
+.switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.switch button {
+  padding: 6px 14px;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: 7px;
+}
+
+.switch button:hover {
+  color: var(--text);
+}
+
+.switch button.active {
+  color: var(--text);
+  background: var(--bg);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.envs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.env {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.env code {
+  font-size: 12px;
+}
+
+.env.active {
+  background: var(--surface);
+  border-color: var(--text);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding: 20px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.card > button {
+  margin-left: auto;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.card-sub {
+  margin: 2px 0 0;
+  font-size: 14px;
+}
+
+@media (max-width: 560px) {
+  .card {
+    flex-wrap: wrap;
+  }
+
+  .envs {
+    margin-left: 0;
+  }
+}
