@@ -27,7 +27,7 @@ export interface EndpointGroup {
 
 export const HEALTH_ID = 'health';
 
-// Mirrors ~/firstbackendproject/backend/src/server.js and its vendorRoutes. Cart is left out for now.
+// Mirrors backend/src/server.js and backend/src/vendorRoutes. Cart is left out for now.
 export const ENDPOINT_GROUPS: EndpointGroup[] = [
   {
     name: 'Health',
