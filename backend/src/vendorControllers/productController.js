@@ -27,6 +27,10 @@ const createProduct = async (req, res) => {
 
     const { name, price, categories } = req.body;
 
+    if (!Number .isInteger(price) || price <= 0) {
+      return res.status(400).json({ message: "Price must be a positive whole number"})
+    }
+
     const cleanName = name?.trim().replace(/\s+/g, ' ');
 
     const existingProduct = await prisma.product.findFirst({
@@ -95,19 +99,20 @@ const editProduct = async (req, res) => {
       }
     })
 
+    if (!product) {
+      return res.status(404).json({ message: "Product not found"});
+    }
+
     const {name, price, categories} = req.body
 
+    const data = { name, price };
+    if (categories) {
+      data.categories = { connect: categories.map(id => ({ id }))}
+    }
+
     const updatedProduct = await prisma.product.update({
-      where: {
-        id: Number(id)
-      },
-      data: {
-        name, 
-        price, 
-        categories: {
-          connect: categories.map(id => ({ id}))
-        }
-      }
+      where: { id: product.id },
+      data
     });
 
     res.json(updatedProduct)
