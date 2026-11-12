@@ -26,7 +26,7 @@ model Store {
   id          Int   @id @default(autoincrement())
   name        String @unique
   published Boolean @default(false)
-  bannerUrl   String?
+  bannerUrl   String? @default("")
   fontFamily      String?  @default("Inter")
   backgroundColor String?  @default("#FFFFFF")
   foregroundColor String?  @default("#000000")
@@ -43,6 +43,7 @@ model Product {
   id          Int     @id @default(autoincrement()) 
   name        String  
   price       Int
+  description String?
   cartItems   CartItem[]
   orderItems  OrderItem[]
   images      Image[]
