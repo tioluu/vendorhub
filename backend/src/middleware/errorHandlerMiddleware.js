@@ -1,6 +1,14 @@
 const errorHandler = (err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json ({ message: "sum ain't right!"});
+
+  let message;
+  if (process.env.NODE_ENV === "development") {
+    message = err.message
+  } else {
+    message = "sum ain't right!";
+  }
+
+  res.status(500).json({ message });
 };
 
 const notFound = (req, res, next) => {
