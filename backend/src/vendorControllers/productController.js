@@ -123,7 +123,7 @@ const editProduct = async (req, res) => {
   }
 };
 
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res, next) => {
 
   try{
     const store = await prisma.store.findUnique({
@@ -157,9 +157,7 @@ const deleteProduct = async (req, res) => {
   res.status(200).json({ message: "Product deleted"})
 
 } catch (error) {
-  res.status(500).json({
-    message: "SOmething went wrong"
-  });
+  next(error)
 }
 };
 

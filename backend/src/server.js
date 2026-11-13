@@ -1,6 +1,5 @@
 import "dotenv/config";
 import express from "express";
-import prisma from "../lib/prisma.js";
 import { errorHandler, notFound } from "./middleware/errorHandlerMiddleware.js";
 import authRoutes from "./vendorRoutes/authRoute.js";
 import homeRoutes from "./vendorRoutes/homeRoute.js";
