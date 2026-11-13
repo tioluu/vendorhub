@@ -25,7 +25,7 @@ const createProduct = async (req, res) => {
       return res.status(404).json({ message: "Store not found"})
     }
 
-    const { name, price, categories } = req.body;
+    const { name, price, categories, description } = req.body;
 
     if (!Number .isInteger(price) || price <= 0) {
       return res.status(400).json({ message: "Price must be a positive whole number"})
@@ -53,6 +53,7 @@ if (existingProduct) {
       data: {
         name: cleanName,
         price,
+        description,
         storeId: store.id,
         categories: {
           connect: categories.map(id => ({ id}))
@@ -103,9 +104,9 @@ const editProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found"});
     }
 
-    const {name, price, categories} = req.body
+    const {name, price, categories, description} = req.body
 
-    const data = { name, price };
+    const data = { name, price, description };
     if (categories) {
       data.categories = { connect: categories.map(id => ({ id }))}
     }

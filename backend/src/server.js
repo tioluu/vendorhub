@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import prisma from "../lib/prisma.js";
+import { errorHandler, notFound } from "./middleware/errorHandlerMiddleware.js";
 import authRoutes from "./vendorRoutes/authRoute.js";
 import homeRoutes from "./vendorRoutes/homeRoute.js";
 import storeRoutes from "./vendorRoutes/storeRoute.js";
@@ -19,9 +20,11 @@ app.use("/api/stores", storeRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
+app.use(notFound);
+app.use(errorHandler);
 
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
