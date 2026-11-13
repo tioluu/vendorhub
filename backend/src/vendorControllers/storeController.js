@@ -12,7 +12,7 @@ const viewStores = async (req, res) => {
 
 };
 
-const viewStoreById = async (req, res) => {
+const viewStoreById = async (req, res, next) => {
   const {id} = req.params;
   try{
     const store = await prisma.store.findUnique({
@@ -30,13 +30,8 @@ const viewStoreById = async (req, res) => {
     res.json(store)
 
   } catch (error) {
-    console.error(error);
-
-  res.status(500).json({
-    message: "Something went wrong"
-  });
-  }
-  
+    next(error)
+}
 };
 
 const createStore = async (req, res) => {
@@ -95,6 +90,39 @@ const deleteStore = async (req, res, next) => {
 }
 };
 
+const publishStore = async (req, res, next) => {
+  try{
+    const storeCheck = await prisma.store.findUnique({
+      where: {
+        vendorId: req.vendor.id
+      }
+    });
+    if (!storeCheck) {
+      return res.status(404).json({ message: "Store not found. Create a store before publishing it."});
+    }
+
+    if (storeCheck.status === "PUBLISHED") {
+      return res.status(200).json({ message: "Store is already published"});
+    } else if (storeCheck.status === "DRAFT") {
+      await prisma.store.update ({
+        where: {
+          id: storeCheck.id,
+        },
+          data: {
+            status: "PUBLISHED",
+            publishedAt: new Date()
+          }
+      });
+      return res.status(200).json({ message: "Store has been published"});
+
+  } else {
+    return res.status(409).json({ message: "The store has been suspended by the Admin."});
+  }
+} catch (error) {
+  next(error)
+}
+};
+
 const unpublishStore = async (req, res, next) => {
   try{
     const storeCheck = await prisma.store.findUnique({
@@ -115,7 +143,7 @@ const unpublishStore = async (req, res, next) => {
         },
           data: {
             status: "DRAFT",
-            publishedAt: null
+            publishedAt: new Date()
           }
       });
 
@@ -166,3 +194,4 @@ export {createStore};
 export {deleteStore};
 export {customizeStore};
 export {unpublishStore};
+export {publishStore};
