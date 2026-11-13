@@ -1,7 +1,6 @@
 import express from "express";
 import { viewStores, createStore, deleteStore, customizeStore, 
-    viewStoreById, 
-    unpublishStore} from "../vendorControllers/storeController.js";
+    viewStoreById, publishStore, unpublishStore} from "../vendorControllers/storeController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -12,6 +11,7 @@ router.post ("/create-store", authenticateToken, createStore);
 router.delete ("/delete-store", authenticateToken, deleteStore);
 router.patch ("/customize-store", authenticateToken, customizeStore);
 router.patch ("/unpublish-store", authenticateToken, unpublishStore);
+router.patch ("/publish-store", authenticateToken, publishStore);
 
 
 export default router;
