@@ -22,8 +22,8 @@ export const ENVIRONMENTS: Environment[] = [
     target: 'localhost:3001',
     base: '/dev',
     readOnly: false,
-    startCommand: `cd ${BACKEND} && DOTENV_CONFIG_PATH=.dev.env node --watch src/server.js`,
-    resetCommand: `cd ${BACKEND} && DOTENV_CONFIG_PATH=.dev.env npx prisma migrate reset`,
+    startCommand: `cd ${BACKEND} && node --watch src/server.js`,
+    resetCommand: `cd ${BACKEND} && npx prisma migrate reset`,
   },
   {
     id: 'prod',
@@ -31,6 +31,6 @@ export const ENVIRONMENTS: Environment[] = [
     target: 'localhost:3000',
     base: '/prod',
     readOnly: true,
-    startCommand: `cd ${BACKEND} && node --watch src/server.js`,
+    startCommand: `cd ${BACKEND} && DOTENV_CONFIG_PATH=~/.config/vendorhub/.env.prod node --watch src/server.js`,
   },
 ];
