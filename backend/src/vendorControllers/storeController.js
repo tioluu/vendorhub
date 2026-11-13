@@ -1,6 +1,6 @@
 import prisma from "../../lib/prisma.js";
 
-const viewStore = async (req, res) => {
+const viewStores = async (req, res) => {
   const store = await prisma.store.findMany({
   });
 
@@ -10,7 +10,7 @@ const viewStore = async (req, res) => {
   };
   res.json(store)
 
-}
+};
 
 const viewStoreById = async (req, res) => {
   const {id} = req.params;
@@ -60,27 +60,73 @@ const createStore = async (req, res) => {
 }
 };
 
-const deleteStore = async (req, res) => {
+const deleteStore = async (req, res, next) => {
     try{
-       const store = await prisma.store.delete({
+       const storeExist = await prisma.store.findUnique({
         where: {
-            name: req.body.name,
             vendorId: req.vendor.id
         }
     }); 
+    if (!storeExist) {
+      return res.status(404).json({ message: "Store not found, check if it exists."});
+    }
 
+    const checkOrder = await prisma.order.count({
+      where: {
+        storeId: storeExist.id
+      } 
+    })
+    if (checkOrder > 0) {
+      return res.status(409).json({ message: "This store has orders and can not be deleted. Unpublish it instead"})
+    }
+  
+    await prisma.store.delete({
+      where: {
+        id: storeExist.id
+      }
+    })
     res.status(200).json({message: "Store deleted successfully"});
 
     } catch (error) {
-  console.error(error);
-
-  res.status(500).json({
-    message: "Store already exist"
-  });
-} 
+      if (error.code === 'P2003') {
+        return res.status(409).json({ message: "This store has orders and can not be deleted. Unpublish it instead."});
+    }
+    next(error)
+}
 };
 
-const customizeStore = async (req, res) => {
+const unpublishStore = async (req, res, next) => {
+  try{
+    const storeCheck = await prisma.store.findUnique({
+      where: {
+        vendorId: req.vendor.id
+      }
+    });
+    if (!storeCheck) {
+      return res.status(404).json({ message: "Store not found. Create a store before unpublishing it."});
+    }
+
+    if (storeCheck.status !== "PUBLISHED") {
+      return res.status(200).json({ message: "Store is already unpublished"});
+    } else {
+      await prisma.store.update ({
+        where: {
+          id: storeCheck.id,
+        },
+          data: {
+            status: "DRAFT",
+            publishedAt: null
+          }
+      });
+
+      res.status(200).json({ message: "Store has been unpublished"})
+    }
+  } catch (error) {
+    next(error)
+  }
+};
+
+const customizeStore = async (req, res, next) => {
   try {
     const store = await prisma.store.findUnique({
       where: {
@@ -109,17 +155,14 @@ const customizeStore = async (req, res) => {
     res.json(updatedStore)
 
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-    message: "Something went wrong"
-  });
+    next(error)
   }
 };
 
 
-export {viewStore};
+export {viewStores};
 export {viewStoreById};
 export {createStore};
 export {deleteStore};
 export {customizeStore};
+export {unpublishStore};
