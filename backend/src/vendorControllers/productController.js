@@ -13,7 +13,7 @@ const viewProduct = async (req, res) => {
    res.json(product)
 }
 
-const createProduct = async (req, res) => {
+const createProduct = async (req, res, next) => {
   try{
     const store = await prisma.store.findUnique({
       where: {
@@ -22,7 +22,7 @@ const createProduct = async (req, res) => {
     });
 
     if (!store) {
-      return res.status(404).json({ message: "Store not found"})
+      return res.status(404).json({ message: "Store not found. Create a store before adding a product"})
     }
 
     const { name, price, categories, description } = req.body;
@@ -64,18 +64,14 @@ if (existingProduct) {
   res.json(product)
 
   } catch (error) {
-  console.error(error);
-
   if (error.code === 'P2002') {
     return res.status(409).json({
       message: "A product with this name already exists in your store."
-    })
+    });
   }
 
-  res.status(500).json({
-    message: "Something went wrong"
-  });
-}
+  next(error);
+};
 };
 
 const editProduct = async (req, res) => {
@@ -161,8 +157,6 @@ const deleteProduct = async (req, res) => {
   res.status(200).json({ message: "Product deleted"})
 
 } catch (error) {
-  console.error(error);
-
   res.status(500).json({
     message: "SOmething went wrong"
   });
