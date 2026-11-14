@@ -70,9 +70,15 @@ const deleteCategory = async (req, res, next) => {
             return res.status(404).json({ message: "Store not found. Create a store before managing categories"})
         };
         
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ message: "Invalid category ID"})
+        }
+
         const category = await prisma.category.delete ({
             where: {
-                id: Number(req.params.id),
+                id: id,
                 storeId: store.id
             }
         });
