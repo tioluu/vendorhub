@@ -139,9 +139,9 @@ const unpublishStore = async (req, res, next) => {
       return res.status(404).json({ message: "Store not found. Create a store before unpublishing it."});
     }
 
-    if (storeCheck.status !== "PUBLISHED") {
-      return res.status(200).json({ message: "Store is already unpublished"});
-    } else {
+    if (storeCheck.status === "DRAFT") {
+      return res.status(200).json({ message: "Store has already been unpublished"});
+    } else if (storeCheck.status === "PUBLISHED") {
       await prisma.store.update ({
         where: {
           id: storeCheck.id,
@@ -151,9 +151,11 @@ const unpublishStore = async (req, res, next) => {
             publishedAt: new Date()
           }
       });
+      return res.status(200).json({ message: "Store has been unpublished"});
 
-      res.status(200).json({ message: "Store has been unpublished"})
-    }
+  } else {
+    return res.status(409).json({ message: "The store has been suspended by the Admin."});
+  }
   } catch (error) {
     next(error)
   }
