@@ -210,13 +210,13 @@ const unpublishProduct = async (req, res, next) => {
         },
           data: {
             status: "DRAFT",
-            publishedAt: new Date()
+            publishedAt: null
           }
       });
-      return res.status(200).json({ message: "Store has been unpublished"});
+      return res.status(200).json({ message: "Product has been unpublished"});
 
     } else {
-      return res.status(409).json({ message: "The store has been suspended by the Admin."});
+      return res.status(409).json({ message: "The product has been suspended by the Admin."});
   }
   } catch (error) {
     next(error)
@@ -224,37 +224,48 @@ const unpublishProduct = async (req, res, next) => {
 };
 
 const deleteProduct = async (req, res, next) => {
-
   try{
-    const store = await prisma.store.findUnique({
+    const storeCheck = await prisma.store.findUnique({
       where: {
         vendorId: req.vendor.id
       }
     });
 
-    if (!store) {
-      return res.status(404).json({message: "Product not found or store does not exist"})
+    if (!storeCheck) {
+      return res.status(404).json({message: "Store not found. Create a store before deleting a product."})
     };
 
-    const { id } = req.params; 
-    const product = await prisma.product.findFirst({
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid product ID"})
+    }
+
+    const productCheck = await prisma.product.findFirst({
       where: {
-        id: Number(id),
-        storeId: store.id
+        id: id,
+        storeId: storeCheck.id,
+        archived: false
     }
   });
 
-  if (!product) {
+  if (!productCheck) {
     return res.status(404).json({ message: "Product not found"})
   };
 
-  await prisma.product.delete({
+  await prisma.product.update({
     where: {
-      id: product.id
+      id: productCheck.id,
+      storeId: storeCheck.id
+    },
+    data: {
+      archived: true,
+      status: "DRAFT",
+      publishedAt: null
     }
   })
 
-  res.status(200).json({ message: "Product deleted"})
+  return res.status(200).json({ message: "Product deleted"})
 
 } catch (error) {
   next(error)
