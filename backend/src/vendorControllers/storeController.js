@@ -13,11 +13,16 @@ const viewStores = async (req, res) => {
 };
 
 const viewStoreById = async (req, res, next) => {
-  const {id} = req.params;
   try{
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid store ID"})
+    }
+
     const store = await prisma.store.findUnique({
     where: {
-      id: Number (id)
+      id: id
     }
   });
  
@@ -134,21 +139,23 @@ const unpublishStore = async (req, res, next) => {
       return res.status(404).json({ message: "Store not found. Create a store before unpublishing it."});
     }
 
-    if (storeCheck.status !== "PUBLISHED") {
-      return res.status(200).json({ message: "Store is already unpublished"});
-    } else {
+    if (storeCheck.status === "DRAFT") {
+      return res.status(200).json({ message: "Store has already been unpublished"});
+    } else if (storeCheck.status === "PUBLISHED") {
       await prisma.store.update ({
         where: {
           id: storeCheck.id,
         },
           data: {
             status: "DRAFT",
-            publishedAt: new Date()
+            publishedAt: null
           }
       });
+      return res.status(200).json({ message: "Store has been unpublished"});
 
-      res.status(200).json({ message: "Store has been unpublished"})
-    }
+  } else {
+    return res.status(409).json({ message: "The Store has been suspended by the Admin."});
+  }
   } catch (error) {
     next(error)
   }

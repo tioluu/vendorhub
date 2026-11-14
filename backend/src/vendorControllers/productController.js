@@ -27,7 +27,7 @@ const createProduct = async (req, res, next) => {
 
     const { name, price, categories, description } = req.body;
 
-    if (!Number .isInteger(price) || price <= 0) {
+    if (!Number.isInteger(price) || price <= 0) {
       return res.status(400).json({ message: "Price must be a positive whole number"})
     }
 
@@ -87,11 +87,15 @@ const editProduct = async (req, res) => {
         message: "Product not found or store does not exist"})
     };
 
-    const { id } = req.params;
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid product ID"})
+    }
 
     const product = await prisma.product.findFirst({
       where: {
-        id: Number(id),
+        id: id,
         storeId: store.id
       }
     })
@@ -123,38 +127,145 @@ const editProduct = async (req, res) => {
   }
 };
 
-const deleteProduct = async (req, res, next) => {
-
+const publishProduct = async (req, res, next) => {
   try{
-    const store = await prisma.store.findUnique({
+    const storeCheck = await prisma.store.findUnique({
       where: {
-      vendorId: req.vendor.id
+        vendorId: req.vendor.id
+      }
+    });
+    if (!storeCheck) {
+      return res.status(404).json({ message: "Store not found. Create a store before publishing a product."});
+    }
+
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid product ID"})
+    }
+    const productCheck = await prisma.product.findFirst({
+      where: {
+        id: id,
+        storeId: storeCheck.id
+      }
+    });
+    if (!productCheck) {
+      return res.status(404).json({ message: "Product not found"})
+    }
+
+    if (productCheck.status === "PUBLISHED") {
+      return res.status(200).json({ message: "Product is already published"});
+    } else if (productCheck.status === "DRAFT") {
+      await prisma.product.update ({
+        where: {
+          id: productCheck.id,
+        },
+          data: {
+            status: "PUBLISHED",
+            publishedAt: new Date()
+          }
+      });
+      return res.status(200).json({ message: "Product has been published"});
+
+  } else {
+    return res.status(409).json({ message: "The product has been suspended by the Admin."});
+  }
+} catch (error) {
+  next(error)
+}
+};
+
+const unpublishProduct = async (req, res, next) => {
+  try{
+    const storeCheck = await prisma.store.findUnique({
+      where: {
+        vendorId: req.vendor.id
+      }
+    });
+    if (!storeCheck) {
+      return res.status(404).json({ message: "Store not found. Create a store before unpublishing a product."});
+    }
+
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid product ID"})
+    }
+    const productCheck = await prisma.product.findFirst({
+      where: {
+        id: id,
+        storeId: storeCheck.id
+      }
+    });
+    if (!productCheck) {
+      return res.status(404).json({ message: "Product not found"})
+    }
+
+    if (productCheck.status === "DRAFT") {
+      return res.status(200).json({ message: "Product has already been unpublished"});
+    } else if (productCheck.status === "PUBLISHED") {
+      await prisma.product.update ({
+        where: {
+          id: productCheck.id,
+        },
+          data: {
+            status: "DRAFT",
+            publishedAt: null
+          }
+      });
+      return res.status(200).json({ message: "Product has been unpublished"});
+
+    } else {
+      return res.status(409).json({ message: "The product has been suspended by the Admin."});
+  }
+  } catch (error) {
+    next(error)
+  }
+};
+
+const deleteProduct = async (req, res, next) => {
+  try{
+    const storeCheck = await prisma.store.findUnique({
+      where: {
+        vendorId: req.vendor.id
       }
     });
 
-    if (!store) {
-      return res.status(404).json({message: "Product not found or store does not exist"})
+    if (!storeCheck) {
+      return res.status(404).json({message: "Store not found. Create a store before deleting a product."})
     };
 
-    const { id } = req.params; 
-    const product = await prisma.product.findFirst({
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid product ID"})
+    }
+
+    const productCheck = await prisma.product.findFirst({
       where: {
-        id: Number(id),
-        storeId: store.id
+        id: id,
+        storeId: storeCheck.id,
+        archived: false
     }
   });
 
-  if (!product) {
+  if (!productCheck) {
     return res.status(404).json({ message: "Product not found"})
   };
 
-  await prisma.product.delete({
+  await prisma.product.update({
     where: {
-      id: product.id
+      id: productCheck.id,
+      storeId: storeCheck.id
+    },
+    data: {
+      archived: true,
+      status: "DRAFT",
+      publishedAt: null
     }
   })
 
-  res.status(200).json({ message: "Product deleted"})
+  return res.status(200).json({ message: "Product deleted"})
 
 } catch (error) {
   next(error)
@@ -165,3 +276,5 @@ export {viewProduct};
 export {createProduct};
 export {deleteProduct};
 export {editProduct};
+export {publishProduct};
+export {unpublishProduct};
