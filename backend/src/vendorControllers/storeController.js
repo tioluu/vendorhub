@@ -148,10 +148,10 @@ const unpublishStore = async (req, res, next) => {
         },
           data: {
             status: "DRAFT",
-            publishedAt: new Date()
+            publishedAt: null
           }
       });
-      return res.status(200).json({ message: "Store has been unpublished"});
+      return res.status(200).json({ message: "Product has been unpublished"});
 
   } else {
     return res.status(409).json({ message: "The store has been suspended by the Admin."});
