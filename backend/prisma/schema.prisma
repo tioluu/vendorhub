@@ -43,19 +43,20 @@ model Store {
 model Product { 
   id          Int     @id @default(autoincrement()) 
   name        String  
+  publishedAt DateTime?
   price       Int
   description String?
   cartItems   CartItem[]
   orderItems  OrderItem[]
   images      Image[]
   categories  Category[]
+  status       ProductStatus @default(DRAFT)
   stock       Int @default(0)
   trackInventory  Boolean @default(true)
   archived  Boolean  @default(false)
 
   storeId    Int      
   store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade) 
-  published Boolean @default(false)
 
   @@unique([storeId, name])
 } 
@@ -67,6 +68,11 @@ enum OrderStatus {
   CANCELLED
 }
 enum StoreStatus {
+  DRAFT
+  PUBLISHED
+  SUSPENDED
+}
+enum ProductStatus {
   DRAFT
   PUBLISHED
   SUSPENDED
