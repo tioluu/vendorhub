@@ -33,6 +33,9 @@ const createProduct = async (req, res, next) => {
 
     const cleanName = name?.trim().replace(/\s+/g, ' ');
 
+    if(!cleanName) {
+      return res.status(400).json({ message: "Add product name to body"})
+    }
     const existingProduct = await prisma.product.findFirst({
     where: {
     storeId: store.id,
@@ -49,19 +52,35 @@ if (existingProduct) {
   });
 }
 
-    const product = await prisma.product.create({
-      data: {
-        name: cleanName,
-        price,
-        description,
-        storeId: store.id,
-        categories: {
-          connect: categories.map(id => ({ id}))
-        }
-      }
-    });
+const categoryIds = Array.isArray(categories) ? [...new Set(categories)] : [];
 
-  res.json(product)
+if (categoryIds.length > 0) {
+  const categoryCheck = await prisma.category.findMany({
+    where: {
+      id: { in: categoryIds },
+      storeId: store.id
+    }
+  });
+
+  if (categoryCheck.length !== categoryIds.length) {
+    return res.status(400).json({ message: "One or more categories don't exist in your store" });
+  }
+}
+
+const data = {
+  name: cleanName,
+  price,
+  description,
+  storeId: store.id
+};
+
+if (categoryIds.length > 0) {
+  data.categories = { connect: categoryIds.map(id => ({ id })) };
+}
+
+const product = await prisma.product.create({ data });
+
+  res.status(201).json(product)
 
   } catch (error) {
   if (error.code === 'P2002') {
@@ -74,7 +93,7 @@ if (existingProduct) {
 };
 };
 
-const editProduct = async (req, res) => {
+const editProduct = async (req, res, next) => {
   try {
     const store = await prisma.store.findUnique({
       where: {
@@ -84,7 +103,7 @@ const editProduct = async (req, res) => {
 
     if (!store) {
       return res.status(404).json({
-        message: "Product not found or store does not exist"})
+        message: "Store not found. Create a store before editing products"})
     };
 
     const id = Number(req.params.id);
@@ -96,7 +115,8 @@ const editProduct = async (req, res) => {
     const product = await prisma.product.findFirst({
       where: {
         id: id,
-        storeId: store.id
+        storeId: store.id,
+        archived: false
       }
     })
 
@@ -104,11 +124,27 @@ const editProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found"});
     }
 
-    const {name, price, categories, description} = req.body
+       const {name, price, categories, description} = req.body
 
     const data = { name, price, description };
-    if (categories) {
-      data.categories = { connect: categories.map(id => ({ id }))}
+
+    if (Array.isArray(categories)) {
+      const categoryIds = [...new Set(categories)];
+
+      if (categoryIds.length > 0) {
+        const categoryCheck = await prisma.category.findMany({
+          where: {
+            id: { in: categoryIds },
+            storeId: store.id
+          }
+        });
+
+        if (categoryCheck.length !== categoryIds.length) {
+          return res.status(400).json({ message: "One or more categories don't exist in your store" });
+        }
+      }
+
+      data.categories = { set: categoryIds.map(id => ({ id })) };
     }
 
     const updatedProduct = await prisma.product.update({
@@ -119,11 +155,7 @@ const editProduct = async (req, res) => {
     res.json(updatedProduct)
 
   } catch (error) {
-    console.error(error);
-
-  res.status(500).json({
-    message: "Something went wrong"
-  });
+    next(error)
   }
 };
 
