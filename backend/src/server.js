@@ -19,6 +19,7 @@ app.use("/api/stores", storeRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/uploads", express.static("uploads"));
 app.use(notFound);
 app.use(errorHandler);
 
