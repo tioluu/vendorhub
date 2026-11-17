@@ -93,15 +93,64 @@ const product = await prisma.product.create({ data });
 };
 };
 
-const editProduct = async (req, res, next) => {
+const uploadProductImage = async (req, res, next) => {
   try {
-    const store = await prisma.store.findUnique({
+    if (!req.file) {
+      return res.status(400).json({ message: "No image uploaded. Send it in a form field called 'image'"});
+    }
+
+    const storeCheck = await prisma.store.findUnique({
       where: {
         vendorId: req.vendor.id
       }
     });
 
-    if (!store) {
+    if (!storeCheck) {
+      return res.status(404).json({
+        message: "Store not found. Create a store before uploading images for a product"})
+    };
+
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ message: "Invalid product ID"})
+    }
+
+    const productCheck = await prisma.product.findFirst({
+      where: {
+        id: id,
+        storeId: storeCheck.id,
+        archived: false
+      }
+    });
+
+    if (!productCheck) {
+      return res.status(404).json({ message: "Product not found"});
+    }
+
+    const image = await prisma.image.create({
+      data: {
+        url: `/uploads/${req.file.filename}`,
+        productId: productCheck.id
+      }
+    });
+
+    return res.status(201).json({ message: "Image uploaded", image });
+
+  } catch (error) {
+    next(error)
+  }
+};
+
+const editProduct = async (req, res, next) => {
+  try {
+    const storeCheck = await prisma.store.findUnique({
+      where: {
+        vendorId: req.vendor.id
+      }
+    });
+
+    if (!storeCheck) {
       return res.status(404).json({
         message: "Store not found. Create a store before editing products"})
     };
@@ -112,7 +161,7 @@ const editProduct = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid product ID"})
     }
 
-    const product = await prisma.product.findFirst({
+    const productCheck = await prisma.product.findFirst({
       where: {
         id: id,
         storeId: store.id,
@@ -120,11 +169,11 @@ const editProduct = async (req, res, next) => {
       }
     })
 
-    if (!product) {
+    if (!productCheck) {
       return res.status(404).json({ message: "Product not found"});
     }
 
-       const {name, price, categories, description} = req.body
+    const {name, price, categories, description} = req.body
 
     const data = { name, price, description };
 
@@ -306,6 +355,7 @@ const deleteProduct = async (req, res, next) => {
 
 export {viewProduct};
 export {createProduct};
+export {uploadProductImage};
 export {deleteProduct};
 export {editProduct};
 export {publishProduct};
