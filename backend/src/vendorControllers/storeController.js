@@ -1,4 +1,5 @@
 import prisma from "../../lib/prisma.js";
+import { validateStoreName } from "../utils/validateStoreName.js";
 
 const viewStores = async (req, res) => {
   const store = await prisma.store.findMany({
@@ -39,11 +40,44 @@ const viewStoreById = async (req, res, next) => {
 }
 };
 
-const createStore = async (req, res) => {
+const createStore = async (req, res, next) => {
   try{
+    const {name} = req.body;
+    if (typeof name !== "string") {
+      return res.status(400).json({ message: "Store name must be text"});
+    }
+
+    const cleanName = name.trim().toLowerCase().replace(/\s+/g, '-');
+      if (!cleanName) {
+        return res.status(400).json({ message: "Store name is required"});
+      }
+    
+    const nameError = validateStoreName(cleanName);
+    if (nameError) {
+      return res.status(400).json({ message: nameError});
+    }
+
+    const storeCheck = await prisma.store.findUnique({
+      where: {
+        vendorId: req.vendor.id
+      }
+    });
+    if (storeCheck) {
+      return res.status(409).json({ message: "You already have a store"});
+    }
+
+    const nameTaken = await prisma.store.findUnique({
+      where: {
+        name: cleanName
+      }
+    });
+    if (nameTaken) {
+      return res.status(409).json({ message: "This store name is already taken"});
+    }
+
     const store = await prisma.store.create({
       data: {
-        name: req.body.name,
+        name: cleanName,
         vendorId: req.vendor.id
       }
   });
@@ -54,9 +88,12 @@ const createStore = async (req, res) => {
   });
 
   } catch (error) {
-    res.status(400).json({
-    message: "Store already exist"
-  });
+      if (error.code === 'P2002') {
+        return res.status(409).json({
+        message: `A store with this name already exists, or you already have a store.`
+    });
+  }
+  next(error);
 }
 };
 
