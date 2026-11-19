@@ -1,5 +1,5 @@
 import express from "express";
-import {createCategory, viewCategory, deleteCategory} from "../vendorControllers/categoryController.js";
+import { createCategory, viewCategory, deleteCategory } from "../vendorControllers/categoryController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
