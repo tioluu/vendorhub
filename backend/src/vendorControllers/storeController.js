@@ -6,55 +6,56 @@ const viewStores = async (req, res) => {
   });
 
   if (!store) {
-    return res.status(404).json({ 
-      message: "No Store found" })
+    return res.status(404).json({
+      message: "No Store found"
+    })
   };
   res.json(store)
 
 };
 
 const viewStoreById = async (req, res, next) => {
-  try{
+  try {
     const id = Number(req.params.id);
 
     if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ message: "Invalid store ID"})
+      return res.status(400).json({ message: "Invalid store ID" })
     }
 
     const store = await prisma.store.findUnique({
-    where: {
-      id: id
-    }
-  });
- 
+      where: {
+        id: id
+      }
+    });
+
     if (!store) {
-      return res.status(404).json ({
+      return res.status(404).json({
         message: "Store Not Found"
       })
     };
-    
+
     res.json(store)
 
   } catch (error) {
     next(error)
-}
+  }
 };
 
 const createStore = async (req, res, next) => {
-  try{
-    const {name} = req.body;
+  try {
+    const { name } = req.body;
     if (typeof name !== "string") {
-      return res.status(400).json({ message: "Store name must be text"});
+      return res.status(400).json({ message: "Store name must be text" });
     }
 
     const cleanName = name.trim().toLowerCase().replace(/\s+/g, '-');
-      if (!cleanName) {
-        return res.status(400).json({ message: "Store name is required"});
-      }
-    
+    if (!cleanName) {
+      return res.status(400).json({ message: "Store name is required" });
+    }
+
     const nameError = validateStoreName(cleanName);
     if (nameError) {
-      return res.status(400).json({ message: nameError});
+      return res.status(400).json({ message: nameError });
     }
 
     const storeCheck = await prisma.store.findUnique({
@@ -63,7 +64,7 @@ const createStore = async (req, res, next) => {
       }
     });
     if (storeCheck) {
-      return res.status(409).json({ message: "You already have a store"});
+      return res.status(409).json({ message: "You already have a store" });
     }
 
     const nameTaken = await prisma.store.findUnique({
@@ -72,7 +73,7 @@ const createStore = async (req, res, next) => {
       }
     });
     if (nameTaken) {
-      return res.status(409).json({ message: "This store name is already taken"});
+      return res.status(409).json({ message: "This store name is already taken" });
     }
 
     const store = await prisma.store.create({
@@ -80,119 +81,119 @@ const createStore = async (req, res, next) => {
         name: cleanName,
         vendorId: req.vendor.id
       }
-  });
+    });
 
-  res.status(201).json({
-    message: "Store created successfully",
-    store
-  });
+    res.status(201).json({
+      message: "Store created successfully",
+      store
+    });
 
   } catch (error) {
-      if (error.code === 'P2002') {
-        return res.status(409).json({
+    if (error.code === 'P2002') {
+      return res.status(409).json({
         message: `A store with this name already exists, or you already have a store.`
-    });
+      });
+    }
+    next(error);
   }
-  next(error);
-}
 };
 
 const deleteStore = async (req, res, next) => {
-    try{
-       const storeExist = await prisma.store.findUnique({
-        where: {
-            vendorId: req.vendor.id
-        }
-    }); 
+  try {
+    const storeExist = await prisma.store.findUnique({
+      where: {
+        vendorId: req.vendor.id
+      }
+    });
     if (!storeExist) {
-      return res.status(404).json({ message: "Store not found, check if it exists."});
+      return res.status(404).json({ message: "Store not found, check if it exists." });
     }
 
     const checkOrder = await prisma.order.count({
       where: {
         storeId: storeExist.id
-      } 
+      }
     })
     if (checkOrder > 0) {
-      return res.status(409).json({ message: "This store has orders and can not be deleted. Unpublish it instead"})
+      return res.status(409).json({ message: "This store has orders and can not be deleted. Unpublish it instead" })
     }
-  
+
     await prisma.store.delete({
       where: {
         id: storeExist.id
       }
     })
-    res.status(200).json({message: "Store deleted successfully"});
+    res.status(200).json({ message: "Store deleted successfully" });
 
-    } catch (error) {
-      if (error.code === 'P2003') {
-        return res.status(409).json({ message: "This store has orders and can not be deleted. Unpublish it instead."});
+  } catch (error) {
+    if (error.code === 'P2003') {
+      return res.status(409).json({ message: "This store has orders and can not be deleted. Unpublish it instead." });
     }
     next(error)
-}
+  }
 };
 
 const publishStore = async (req, res, next) => {
-  try{
+  try {
     const storeCheck = await prisma.store.findUnique({
       where: {
         vendorId: req.vendor.id
       }
     });
     if (!storeCheck) {
-      return res.status(404).json({ message: "Store not found. Create a store before publishing it."});
+      return res.status(404).json({ message: "Store not found. Create a store before publishing it." });
     }
 
     if (storeCheck.status === "PUBLISHED") {
-      return res.status(200).json({ message: "Store is already published"});
+      return res.status(200).json({ message: "Store is already published" });
     } else if (storeCheck.status === "DRAFT") {
-      await prisma.store.update ({
+      await prisma.store.update({
         where: {
           id: storeCheck.id,
         },
-          data: {
-            status: "PUBLISHED",
-            publishedAt: new Date()
-          }
+        data: {
+          status: "PUBLISHED",
+          publishedAt: new Date()
+        }
       });
-      return res.status(200).json({ message: "Store has been published"});
+      return res.status(200).json({ message: "Store has been published" });
 
-  } else {
-    return res.status(409).json({ message: "The store has been suspended by the Admin."});
+    } else {
+      return res.status(409).json({ message: "The store has been suspended by the Admin." });
+    }
+  } catch (error) {
+    next(error)
   }
-} catch (error) {
-  next(error)
-}
 };
 
 const unpublishStore = async (req, res, next) => {
-  try{
+  try {
     const storeCheck = await prisma.store.findUnique({
       where: {
         vendorId: req.vendor.id
       }
     });
     if (!storeCheck) {
-      return res.status(404).json({ message: "Store not found. Create a store before unpublishing it."});
+      return res.status(404).json({ message: "Store not found. Create a store before unpublishing it." });
     }
 
     if (storeCheck.status === "DRAFT") {
-      return res.status(200).json({ message: "Store has already been unpublished"});
+      return res.status(200).json({ message: "Store has already been unpublished" });
     } else if (storeCheck.status === "PUBLISHED") {
-      await prisma.store.update ({
+      await prisma.store.update({
         where: {
           id: storeCheck.id,
         },
-          data: {
-            status: "DRAFT",
-            publishedAt: null
-          }
+        data: {
+          status: "DRAFT",
+          publishedAt: null
+        }
       });
-      return res.status(200).json({ message: "Store has been unpublished"});
+      return res.status(200).json({ message: "Store has been unpublished" });
 
-  } else {
-    return res.status(409).json({ message: "The Store has been suspended by the Admin."});
-  }
+    } else {
+      return res.status(409).json({ message: "The Store has been suspended by the Admin." });
+    }
   } catch (error) {
     next(error)
   }
@@ -212,14 +213,14 @@ const customizeStore = async (req, res, next) => {
       })
     };
 
-    const { fontFamily, backgroundColor, foregroundColor} = req.body
-    const updatedStore = await prisma.store.update ({
+    const { fontFamily, backgroundColor, foregroundColor } = req.body
+    const updatedStore = await prisma.store.update({
       where: {
         vendorId: req.vendor.id
       },
       data: {
-        fontFamily, 
-        backgroundColor, 
+        fontFamily,
+        backgroundColor,
         foregroundColor
       }
     })
@@ -232,10 +233,10 @@ const customizeStore = async (req, res, next) => {
 };
 
 
-export {viewStores};
-export {viewStoreById};
-export {createStore};
-export {deleteStore};
-export {customizeStore};
-export {unpublishStore};
-export {publishStore};
+export { viewStores };
+export { viewStoreById };
+export { createStore };
+export { deleteStore };
+export { customizeStore };
+export { unpublishStore };
+export { publishStore };
