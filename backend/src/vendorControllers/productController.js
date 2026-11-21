@@ -166,7 +166,7 @@ const editProduct = async (req, res, next) => {
     const productCheck = await prisma.product.findFirst({
       where: {
         id: id,
-        storeId: store.id,
+        storeId: storeCheck.id,
         archived: false
       }
     })
@@ -186,7 +186,7 @@ const editProduct = async (req, res, next) => {
         const categoryCheck = await prisma.category.findMany({
           where: {
             id: { in: categoryIds },
-            storeId: store.id
+            storeId: storeCheck.id
           }
         });
 
@@ -199,7 +199,7 @@ const editProduct = async (req, res, next) => {
     }
 
     const updatedProduct = await prisma.product.update({
-      where: { id: product.id },
+      where: { id: productCheck.id },
       data
     });
 
