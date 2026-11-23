@@ -1,7 +1,7 @@
 import express from "express";
 import { upload } from "../middleware/uploadMiddleware.js";
 import {
-    viewProduct, createProduct, uploadProductImage, deleteProduct, editProduct,
+    viewProduct, createProduct, uploadProductImage, deleteProductImage, deleteProduct, editProduct,
     publishProduct, unpublishProduct
 } from "../vendorControllers/productController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -13,6 +13,7 @@ const router = express.Router();
 router.get("/view-product", viewProduct);
 router.post("/create-product", authenticateToken, requireStore, createProduct);
 router.post("/upload-image/:id", authenticateToken, requireStore, requireProduct, upload.single("image"), uploadProductImage);
+router.delete("/delete-image/:id/:imageId", authenticateToken, requireStore, requireProduct, deleteProductImage)
 router.delete("/delete-product/:id", authenticateToken, requireStore, requireProduct, deleteProduct);
 router.patch("/edit-product/:id", authenticateToken, requireStore, requireProduct, editProduct);
 router.patch("/publish-product/:id", authenticateToken, requireStore, requireProduct, publishProduct);

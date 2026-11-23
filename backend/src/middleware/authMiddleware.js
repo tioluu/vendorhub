@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import cors from "cors";
 
 const JWT_SECRET = process.env.JWT_SECRET
 
