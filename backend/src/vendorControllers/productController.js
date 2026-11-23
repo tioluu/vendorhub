@@ -11,34 +11,41 @@ const viewProduct = async (req, res) => {
   });
   console.log(product)
   res.json(product)
-}
+};
 
 const createProduct = async (req, res, next) => {
   try {
-    const store = await prisma.store.findUnique({
-      where: {
-        vendorId: req.vendor.id
-      }
-    });
-
-    if (!store) {
-      return res.status(404).json({ message: "Store not found. Create a store before adding a product" })
-    }
-
     const { name, price, categories, description } = req.body;
 
-    if (!Number.isInteger(price) || price <= 0) {
-      return res.status(400).json({ message: "Price must be a positive whole number" })
+    if (typeof name !== "string") {
+      return res.status(400).json({
+        message: "Product name must be text"
+      });
     }
 
-    const cleanName = name?.trim().replace(/\s+/g, ' ');
+    if (description !== undefined) {
+      if (typeof description !== "string") {
+        return res.status(400).json({
+          message: "Product description must be text"
+        });
+      }
+    }
+
+    const cleanName = name.trim().replace(/\s+/g, ' ');
 
     if (!cleanName) {
-      return res.status(400).json({ message: "Add product name to body" })
+      return res.status(400).json({ message: "Add product name to body" });
     }
+
+    if (!Number.isInteger(price) || price <= 0) {
+      return res.status(400).json({
+        message: "Price must be a positive whole number"
+      });
+    }
+
     const existingProduct = await prisma.product.findFirst({
       where: {
-        storeId: store.id,
+        storeId: req.store.id,
         name: {
           equals: cleanName,
           mode: "insensitive",
@@ -54,11 +61,17 @@ const createProduct = async (req, res, next) => {
 
     const categoryIds = Array.isArray(categories) ? [...new Set(categories)] : [];
 
+    if (!categoryIds.every(id => Number.isInteger(id) && id > 0)) {
+      return res.status(400).json({
+        message: "Category IDs must be positive whole numbers"
+      });
+    }
+
     if (categoryIds.length > 0) {
       const categoryCheck = await prisma.category.findMany({
         where: {
           id: { in: categoryIds },
-          storeId: store.id
+          storeId: req.store.id
         }
       });
 
@@ -71,7 +84,7 @@ const createProduct = async (req, res, next) => {
       name: cleanName,
       price,
       description,
-      storeId: store.id
+      storeId: req.store.id
     };
 
     if (categoryIds.length > 0) {
@@ -90,7 +103,7 @@ const createProduct = async (req, res, next) => {
     }
 
     next(error);
-  };
+  }
 };
 
 const uploadProductImage = async (req, res, next) => {
@@ -99,40 +112,10 @@ const uploadProductImage = async (req, res, next) => {
       return res.status(400).json({ message: "No image uploaded. Send it in a form field called 'image'" });
     }
 
-    const storeCheck = await prisma.store.findUnique({
-      where: {
-        vendorId: req.vendor.id
-      }
-    });
-
-    if (!storeCheck) {
-      return res.status(404).json({
-        message: "Store not found. Create a store before uploading images for a product"
-      })
-    };
-
-    const id = Number(req.params.id);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ message: "Invalid product ID" })
-    }
-
-    const productCheck = await prisma.product.findFirst({
-      where: {
-        id: id,
-        storeId: storeCheck.id,
-        archived: false
-      }
-    });
-
-    if (!productCheck) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
     const image = await prisma.image.create({
       data: {
         url: `/uploads/${req.file.filename}`,
-        productId: productCheck.id
+        productId: req.product.id
       }
     });
 
@@ -145,103 +128,116 @@ const uploadProductImage = async (req, res, next) => {
 
 const editProduct = async (req, res, next) => {
   try {
-    const storeCheck = await prisma.store.findUnique({
-      where: {
-        vendorId: req.vendor.id
-      }
-    });
-
-    if (!storeCheck) {
-      return res.status(404).json({
-        message: "Store not found. Create a store before editing products"
-      })
-    };
-
-    const id = Number(req.params.id);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ message: "Invalid product ID" })
-    }
-
-    const productCheck = await prisma.product.findFirst({
-      where: {
-        id: id,
-        storeId: storeCheck.id,
-        archived: false
-      }
-    })
-
-    if (!productCheck) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
     const { name, price, categories, description } = req.body
 
-    const data = { name, price, description };
+    const data = {};
 
-    if (Array.isArray(categories)) {
+    if (name !== undefined) {
+      if (typeof name !== "string") {
+        return res.status(400).json({ message: "Product name must be text" });
+      }
+      const cleanName = name.trim().replace(/\s+/g, ' ');
+
+      if (!cleanName) {
+        return res.status(400).json({ message: "Add product name to body" });
+      }
+
+      const existingProductName = await prisma.product.findFirst({
+        where: {
+          storeId: req.store.id,
+          id: { not: req.product.id },
+          name: {
+            equals: cleanName,
+            mode: "insensitive",
+          },
+        },
+      });
+
+      if (existingProductName) {
+        return res.status(409).json({
+          message: "A product with this name already exists in your store.",
+        });
+      }
+      data.name = cleanName;
+    }
+
+    if (price !== undefined) {
+      if (!Number.isInteger(price) || price <= 0) {
+        return res.status(400).json({
+          message: "Price must be a positive whole number"
+        });
+      }
+      data.price = price;
+    }
+
+    if (description !== undefined) {
+      if (typeof description !== "string") {
+        return res.status(400).json({ message: "Description must be text" });
+      }
+      data.description = description;
+    }
+
+    if (categories !== undefined) {
+      if (!Array.isArray(categories)) {
+        return res.status(400).json({
+          message: "Category must be in form of an array"
+        });
+      }
+
+      if (!categories.every(id => Number.isInteger(id) && id > 0)) {
+        return res.status(400).json({
+          message: "Category IDs must be positive whole numbers"
+        });
+      }
+
       const categoryIds = [...new Set(categories)];
 
-      if (categoryIds.length > 0) {
-        const categoryCheck = await prisma.category.findMany({
-          where: {
-            id: { in: categoryIds },
-            storeId: storeCheck.id
-          }
-        });
-
-        if (categoryCheck.length !== categoryIds.length) {
-          return res.status(400).json({ message: "One or more categories don't exist in your store" });
+      const categoryCheck = await prisma.category.findMany({
+        where: {
+          id: { in: categoryIds },
+          storeId: req.store.id
         }
+      });
+
+      if (categoryCheck.length !== categoryIds.length) {
+        return res.status(400).json({ message: "One or more categories don't exist in your store" });
       }
 
       data.categories = { set: categoryIds.map(id => ({ id })) };
     }
 
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({
+        message: "Send at least one field to update"
+      });
+    }
+
     const updatedProduct = await prisma.product.update({
-      where: { id: productCheck.id },
+      where: { id: req.product.id },
       data
     });
 
-    res.json(updatedProduct)
+    res.json(updatedProduct);
 
   } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({
+        message: "A product with this name already exists in your store."
+      });
+    }
+
     next(error)
   }
 };
 
 const publishProduct = async (req, res, next) => {
   try {
-    const storeCheck = await prisma.store.findUnique({
-      where: {
-        vendorId: req.vendor.id
-      }
-    });
-    if (!storeCheck) {
-      return res.status(404).json({ message: "Store not found. Create a store before publishing a product." });
-    }
-
-    const id = Number(req.params.id);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ message: "Invalid product ID" })
-    }
-    const productCheck = await prisma.product.findFirst({
-      where: {
-        id: id,
-        storeId: storeCheck.id
-      }
-    });
-    if (!productCheck) {
-      return res.status(404).json({ message: "Product not found" })
-    }
-
-    if (productCheck.status === "PUBLISHED") {
+    if (req.product.status === "PUBLISHED") {
       return res.status(200).json({ message: "Product is already published" });
-    } else if (productCheck.status === "DRAFT") {
+    } else if (req.product.status === "DRAFT") {
       await prisma.product.update({
         where: {
-          id: productCheck.id,
+          id: req.product.id,
         },
         data: {
           status: "PUBLISHED",
@@ -260,36 +256,13 @@ const publishProduct = async (req, res, next) => {
 
 const unpublishProduct = async (req, res, next) => {
   try {
-    const storeCheck = await prisma.store.findUnique({
-      where: {
-        vendorId: req.vendor.id
-      }
-    });
-    if (!storeCheck) {
-      return res.status(404).json({ message: "Store not found. Create a store before unpublishing a product." });
-    }
-
-    const id = Number(req.params.id);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ message: "Invalid product ID" })
-    }
-    const productCheck = await prisma.product.findFirst({
-      where: {
-        id: id,
-        storeId: storeCheck.id
-      }
-    });
-    if (!productCheck) {
-      return res.status(404).json({ message: "Product not found" })
-    }
-
-    if (productCheck.status === "DRAFT") {
+    if (req.product.status === "DRAFT") {
       return res.status(200).json({ message: "Product has already been unpublished" });
-    } else if (productCheck.status === "PUBLISHED") {
+    }
+    else if (req.product.status === "PUBLISHED") {
       await prisma.product.update({
         where: {
-          id: productCheck.id,
+          id: req.product.id,
         },
         data: {
           status: "DRAFT",
@@ -308,43 +281,16 @@ const unpublishProduct = async (req, res, next) => {
 
 const deleteProduct = async (req, res, next) => {
   try {
-    const storeCheck = await prisma.store.findUnique({
-      where: {
-        vendorId: req.vendor.id
-      }
-    });
-
-    if (!storeCheck) {
-      return res.status(404).json({ message: "Store not found. Create a store before deleting a product." })
-    };
-
-    const id = Number(req.params.id);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({ message: "Invalid product ID" })
-    }
-
-    const productCheck = await prisma.product.findFirst({
-      where: {
-        id: id,
-        storeId: storeCheck.id,
-        archived: false
-      }
-    });
-
-    if (!productCheck) {
-      return res.status(404).json({ message: "Product not found" })
-    };
-
     await prisma.product.update({
       where: {
-        id: productCheck.id,
-        storeId: storeCheck.id
+        id: req.product.id,
+        storeId: req.store.id
       },
       data: {
         archived: true,
         status: "DRAFT",
-        publishedAt: null
+        publishedAt: null,
+        name: `${req.product.name} [archived ${req.product.id}]`
       }
     })
 
