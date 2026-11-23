@@ -2,18 +2,15 @@ import prisma from "../../lib/prisma.js";
 
 const createCategory = async (req, res, next) => {
     try {
-        const store = await prisma.store.findUnique({
-            where: {
-                vendorId: req.vendor.id
-            }
-        });
-
-        if (!store) {
-            return res.status(404).json({ message: "Store not found. Create a store before adding category" })
-        }
         const { name } = req.body;
 
-        const cleanName = name?.trim().replace(/\s+/g, ' ');
+        if (typeof name !== "string") {
+            return res.status(400).json({
+                message: "Category name must be a text"
+            })
+        }
+
+        const cleanName = name.trim().replace(/\s+/g, ' ');
 
         if (!cleanName) {
             return res.status(400).json({ message: "Add category name to body." })
@@ -21,7 +18,7 @@ const createCategory = async (req, res, next) => {
 
         const existingCategory = await prisma.category.findFirst({
             where: {
-                storeId: store.id,
+                storeId: req.store.id,
                 name: {
                     equals: cleanName,
                     mode: "insensitive",
@@ -38,7 +35,7 @@ const createCategory = async (req, res, next) => {
         const category = await prisma.category.create({
             data: {
                 name: cleanName,
-                storeId: store.id
+                storeId: req.store.id
             }
         });
 
@@ -60,16 +57,6 @@ const createCategory = async (req, res, next) => {
 
 const deleteCategory = async (req, res, next) => {
     try {
-        const store = await prisma.store.findUnique({
-            where: {
-                vendorId: req.vendor.id
-            }
-        });
-
-        if (!store) {
-            return res.status(404).json({ message: "Store not found. Create a store before managing categories" })
-        };
-
         const id = Number(req.params.id);
 
         if (!Number.isInteger(id) || id <= 0) {
@@ -79,7 +66,7 @@ const deleteCategory = async (req, res, next) => {
         const category = await prisma.category.delete({
             where: {
                 id: id,
-                storeId: store.id
+                storeId: req.store.id
             }
         });
 
@@ -101,19 +88,9 @@ const deleteCategory = async (req, res, next) => {
 
 const viewCategory = async (req, res, next) => {
     try {
-        const store = await prisma.store.findUnique({
-            where: {
-                vendorId: req.vendor.id
-            }
-        });
-
-        if (!store) {
-            return res.status(404).json({ message: "Store not found. Create a store before managing categories" })
-        };
-
         const categories = await prisma.category.findMany({
             where: {
-                storeId: store.id
+                storeId: req.store.id
             }
         });
 
