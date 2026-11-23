@@ -1,4 +1,6 @@
 import prisma from "../../lib/prisma.js";
+import { removeUploadedFile } from "../utils/removeUploadedFile.js";
+import path from "node:path";
 
 const viewProduct = async (req, res) => {
   const { storeName } = req.body
@@ -122,9 +124,60 @@ const uploadProductImage = async (req, res, next) => {
     return res.status(201).json({ message: "Image uploaded", image });
 
   } catch (error) {
+    await removeUploadedFile(req.file);
+
     next(error)
   }
 };
+
+const deleteProductImage = async (req, res, next) => {
+  try {
+    const imageId = Number(req.params.imageId);
+
+    if (!Number.isInteger(imageId) || imageId <= 0) {
+      return res.status(400).json({ message: "Invalid image ID" })
+    }
+
+    const image = await prisma.image.findUnique({
+      where: {
+        id: imageId,
+        productId: req.product.id
+      }
+    });
+
+    if (!image) {
+      return res.status(404).json({
+        message: "Image not found"
+      })
+    }
+
+    const imageCount = await prisma.image.count({
+      where: {
+        productId: req.product.id
+      }
+    });
+
+    if (req.product.status === "PUBLISHED" && imageCount === 1) {
+      return res.status(400).json({
+        message: "This is the product's only image. Upload another or unpublish the product first."
+      });
+    }
+
+    await prisma.image.delete({
+      where: {
+        id: image.id
+      }
+    });
+
+    await removeUploadedFile({ path: path.join("uploads", path.basename(image.url)) })
+
+    res.status(200).json({
+      message: "Image deleted"
+    })
+  } catch (error) {
+    next(error)
+  }
+}
 
 const editProduct = async (req, res, next) => {
   try {
@@ -234,7 +287,20 @@ const publishProduct = async (req, res, next) => {
   try {
     if (req.product.status === "PUBLISHED") {
       return res.status(200).json({ message: "Product is already published" });
-    } else if (req.product.status === "DRAFT") {
+    }
+    else if (req.product.status === "DRAFT") {
+      const imageCount = await prisma.image.count({
+        where: {
+          productId: req.product.id
+        }
+      });
+
+      if (imageCount === 0) {
+        return res.status(400).json({
+          message: "Add at least one image before publishing this product"
+        })
+      }
+
       await prisma.product.update({
         where: {
           id: req.product.id,
@@ -244,11 +310,13 @@ const publishProduct = async (req, res, next) => {
           publishedAt: new Date()
         }
       });
-      return res.status(200).json({ message: "Product has been published" });
 
-    } else {
+      res.status(200).json({ message: "Product has been published" });
+    }
+    else {
       return res.status(409).json({ message: "The product has been suspended by the Admin." });
     }
+
   } catch (error) {
     next(error)
   }
@@ -304,6 +372,7 @@ const deleteProduct = async (req, res, next) => {
 export { viewProduct };
 export { createProduct };
 export { uploadProductImage };
+export { deleteProductImage };
 export { deleteProduct };
 export { editProduct };
 export { publishProduct };
