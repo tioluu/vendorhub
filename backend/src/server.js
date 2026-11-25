@@ -23,7 +23,6 @@ app.use("/uploads", express.static("uploads"));
 app.use(notFound);
 app.use(errorHandler);
 
-
 const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
