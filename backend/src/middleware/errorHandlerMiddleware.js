@@ -24,9 +24,11 @@ const errorHandler = (err, req, res, next) => {
 };
 
 const notFound = (req, res, next) => {
-  console.log(`Route not found. Method used is ${req.method} and request Url is ${req.originalUrl}`)
-  res.status(404).json({ message: "check the method or url" })
-}
+  console.log(
+    `Route not found. Method used is ${req.method} and request Url is ${req.originalUrl}`,
+  );
+  res.status(404).json({ message: "check the method or url" });
+};
 
 export { errorHandler };
 export { notFound };
