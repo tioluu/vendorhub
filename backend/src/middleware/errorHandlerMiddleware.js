@@ -3,7 +3,7 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === "MulterError") {
     status = 400;
     if (err.code === "LIMIT_UNEXPECTED_FILE") {
-      err.message = `Unexpected field '${err.field}'. Send the image in a field called 'image'.`;
+      err.message = `Unexpected field '${err.field}'. Check the field name for this upload.`;
     }
   }
 
