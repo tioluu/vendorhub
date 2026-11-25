@@ -1,5 +1,9 @@
 import express from "express";
-import { deleteAccount, getCurrentUser, register } from "../vendorControllers/authController.js";
+import {
+  deleteAccount,
+  getCurrentUser,
+  register,
+} from "../vendorControllers/authController.js";
 import { login } from "../vendorControllers/authController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 

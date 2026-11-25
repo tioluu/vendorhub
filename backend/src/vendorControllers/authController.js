@@ -2,7 +2,6 @@ import prisma from "../../lib/prisma.js";
 import bcrypt from "bcrypt";
 import { authTokenGen } from "../utils/authTokenGen.js";
 
-
 const register = async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -11,8 +10,7 @@ const register = async (req, res) => {
   });
 
   if (emailExists) {
-    return res.status(400)
-      .json({ error: "Email is already taken" });
+    return res.status(400).json({ error: "Email is already taken" });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -23,7 +21,6 @@ const register = async (req, res) => {
 
   res.status(201).json({
     message: "Vendor created",
-
   });
 };
 
@@ -31,7 +28,7 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   const vendorLogin = await prisma.vendor.findUnique({
-    where: { email: email }
+    where: { email: email },
   });
 
   if (!vendorLogin) {
@@ -39,52 +36,50 @@ const login = async (req, res) => {
   }
 
   const verifypass = await bcrypt.compare(password, vendorLogin.passwordHash);
-  console.log(verifypass)
+  console.log(verifypass);
 
   if (!verifypass) {
     return res.status(401).json({ error: "Invalid email or password" });
   }
 
-  delete vendorLogin.passwordHash
+  delete vendorLogin.passwordHash;
 
   const token = authTokenGen(vendorLogin);
 
   res.status(200).json({
     token,
-    message: "Vendor retrieve successful", vendorLogin
-
-  })
+    message: "Vendor retrieve successful",
+    vendorLogin,
+  });
 };
 
 const logout = async (req, res) => {
   res.status(200).json({
-    message: "Logout successful"
-  })
-
+    message: "Logout successful",
+  });
 };
 
 const getCurrentUser = async (req, res) => {
   try {
     const vendor = await prisma.vendor.findUnique({
       where: {
-        id: req.vendor.id
+        id: req.vendor.id,
       },
     });
 
     if (!vendor) {
       return res.status(404).json({
-        "message": "Vendor not found"
+        message: "Vendor not found",
       });
     }
 
     delete vendor.passwordHash;
     res.json(vendor);
-
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
-      message: error.message
+      message: error.message,
     });
   }
 };
