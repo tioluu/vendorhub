@@ -7,10 +7,10 @@ const forgot_password = async (req, res) => {
     where: { email: email },
   });
 
-  res.status(200)
-    .json({
-      error: "If an account with that email exists, a password reset link has been sent."
-    });
+  res.status(200).json({
+    error:
+      "If an account with that email exists, a password reset link has been sent.",
+  });
 };
 
 export { forgot_password };
